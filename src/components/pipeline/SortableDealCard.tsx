@@ -9,10 +9,9 @@ interface SortableDealCardProps {
     deal: Deal;
     contactName?: string;
     onClick: (deal: Deal) => void;
-    onMove: (e: React.MouseEvent, deal: Deal, direction: 'next' | 'prev') => void;
 }
 
-export const SortableDealCard: React.FC<SortableDealCardProps> = ({ deal, contactName, onClick, onMove }) => {
+export const SortableDealCard: React.FC<SortableDealCardProps> = ({ deal, contactName, onClick }) => {
     const {
         attributes,
         listeners,
@@ -72,26 +71,10 @@ export const SortableDealCard: React.FC<SortableDealCardProps> = ({ deal, contac
                 {deal.expectedCloseDate || 'Inget datum'}
             </p>
 
-            <div className="flex justify-between items-center mt-1 md:mt-2 pt-1 md:pt-2 border-t border-gray-50 dark:border-gray-600">
-                <span className="text-[10px] md:text-xs text-gray-400 dark:text-gray-500 truncate mr-2">
+            <div className="mt-1 md:mt-2 pt-1 md:pt-2 border-t border-gray-50 dark:border-gray-600">
+                <span className="text-[10px] md:text-xs text-gray-400 dark:text-gray-500 truncate">
                     Kund: {contactName || 'Okänd'}
                 </span>
-                <div className="flex gap-1" onClick={(e) => e.stopPropagation()}>
-                    <button
-                        onClick={(e) => onMove(e, deal, 'prev')}
-                        disabled={deal.stage === 'potential'}
-                        className="p-0.5 md:p-1 hover:bg-gray-100 dark:hover:bg-gray-600 rounded text-gray-400 dark:text-gray-400 hover:text-gray-600 dark:hover:text-gray-200 disabled:opacity-30 text-xs md:text-sm"
-                    >
-                        ←
-                    </button>
-                    <button
-                        onClick={(e) => onMove(e, deal, 'next')}
-                        disabled={deal.stage === 'lost'}
-                        className="p-0.5 md:p-1 hover:bg-gray-100 dark:hover:bg-gray-600 rounded text-gray-400 dark:text-gray-400 hover:text-gray-600 dark:hover:text-gray-200 disabled:opacity-30 text-xs md:text-sm"
-                    >
-                        →
-                    </button>
-                </div>
             </div>
         </div>
     );

@@ -1,7 +1,7 @@
-import React, { useState, useMemo } from 'react';
+import React, { useState, useMemo, useRef } from 'react';
 import { ChevronLeft, ChevronRight } from 'lucide-react';
 import type { Deal } from '../types';
-import { format, startOfMonth, endOfMonth, eachDayOfInterval, isSameMonth, isSameDay, addMonths, subMonths, startOfWeek, endOfWeek } from 'date-fns';
+import { format, startOfMonth, endOfMonth, eachDayOfInterval, isSameMonth, isSameDay, addMonths, subMonths, startOfWeek, endOfWeek, parse } from 'date-fns';
 import { sv } from 'date-fns/locale';
 
 interface CustomCalendarProps {
@@ -11,6 +11,7 @@ interface CustomCalendarProps {
 
 export const CustomCalendar: React.FC<CustomCalendarProps> = ({ deals, onDateClick }) => {
     const [currentMonth, setCurrentMonth] = useState(new Date());
+    const monthInputRef = useRef<HTMLInputElement>(null);
 
     // Get all days to display (including days from prev/next month to fill the grid)
     const calendarDays = useMemo(() => {
@@ -46,6 +47,26 @@ export const CustomCalendar: React.FC<CustomCalendarProps> = ({ deals, onDateCli
     const handleNextMonth = () => setCurrentMonth(addMonths(currentMonth, 1));
     const handleToday = () => setCurrentMonth(new Date());
 
+    const handleDateChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+        const value = e.target.value; // format: YYYY-MM
+        if (value) {
+            const newDate = parse(value, 'yyyy-MM', new Date());
+            setCurrentMonth(newDate);
+        }
+    };
+
+    const triggerDatePicker = () => {
+        if (monthInputRef.current) {
+            if ('showPicker' in HTMLInputElement.prototype) {
+                // Modern browsers supporting showPicker()
+                (monthInputRef.current as any).showPicker();
+            } else {
+                // Fallback for older browsers
+                monthInputRef.current.click();
+            }
+        }
+    };
+
     const weekDays = ['Mån', 'Tis', 'Ons', 'Tor', 'Fre', 'Lör', 'Sön'];
     const today = new Date();
 
@@ -53,9 +74,24 @@ export const CustomCalendar: React.FC<CustomCalendarProps> = ({ deals, onDateCli
         <div className="flex flex-col h-full">
             {/* Header */}
             <div className="flex items-center justify-between p-4 border-b border-gray-200 dark:border-gray-700 flex-none">
-                <h2 className="text-lg font-bold text-gray-900 dark:text-white">
-                    {format(currentMonth, 'MMMM yyyy', { locale: sv })}
-                </h2>
+                <div className="relative">
+                    <button
+                        onClick={triggerDatePicker}
+                        className="text-lg font-bold text-gray-900 dark:text-white hover:bg-gray-100 dark:hover:bg-gray-700 px-3 py-1 -ml-3 rounded-xl transition-colors flex items-center gap-1 group"
+                    >
+                        {format(currentMonth, 'MMMM yyyy', { locale: sv })}
+                        <span className="text-[10px] bg-gray-100 dark:bg-gray-700 text-gray-500 dark:text-gray-400 px-1.5 py-0.5 rounded-md opacity-0 group-hover:opacity-100 transition-opacity ml-1">
+                            Ändra
+                        </span>
+                    </button>
+                    <input
+                        ref={monthInputRef}
+                        type="month"
+                        className="sr-only" // Hidden visually but accessible
+                        value={format(currentMonth, 'yyyy-MM')}
+                        onChange={handleDateChange}
+                    />
+                </div>
                 <div className="flex items-center gap-2">
                     <button
                         onClick={handleToday}

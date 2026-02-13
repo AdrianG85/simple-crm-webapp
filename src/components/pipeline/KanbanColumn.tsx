@@ -10,10 +10,9 @@ interface KanbanColumnProps {
     deals: Deal[];
     contacts: Contact[];
     onEditDeal: (deal: Deal) => void;
-    onMoveDeal: (e: React.MouseEvent, deal: Deal, direction: 'next' | 'prev') => void;
 }
 
-export const KanbanColumn: React.FC<KanbanColumnProps> = ({ column, deals, contacts, onEditDeal, onMoveDeal }) => {
+export const KanbanColumn: React.FC<KanbanColumnProps> = ({ column, deals, contacts, onEditDeal }) => {
     const { setNodeRef, isOver } = useDroppable({
         id: column.id,
     });
@@ -48,7 +47,6 @@ export const KanbanColumn: React.FC<KanbanColumnProps> = ({ column, deals, conta
                                     deal={deal}
                                     contactName={contact?.name}
                                     onClick={onEditDeal}
-                                    onMove={onMoveDeal}
                                 />
                             );
                         })

@@ -1,8 +1,9 @@
 import React from 'react';
 import { NavLink } from 'react-router-dom';
 import { useTheme } from '../context/ThemeContext';
-import { LayoutDashboard, Users, Trello, Calendar, Moon, Sun } from 'lucide-react';
+import { LayoutDashboard, Users, Trello, Calendar, Moon, Sun, LogOut } from 'lucide-react';
 import { cn } from '../lib/utils';
+import { useAuth } from '../context/AuthContext';
 
 const navItems = [
     { icon: LayoutDashboard, label: 'Översikt', path: '/' },
@@ -13,13 +14,20 @@ const navItems = [
 
 export const Sidebar: React.FC = () => {
     const { theme, toggleTheme } = useTheme();
+    const { user, signOut } = useAuth();
+
+    const handleSignOut = async () => {
+        if (window.confirm('Är du säker på att du vill logga ut?')) {
+            await signOut();
+        }
+    };
 
     return (
         <aside className="hidden md:flex flex-col w-64 bg-white dark:bg-gray-900 border-r border-gray-200 dark:border-gray-800 h-screen fixed left-0 top-0 z-30 transition-colors duration-200">
             <div className="p-6 border-b border-gray-100 dark:border-gray-800 flex justify-between items-center">
                 <h1 className="text-2xl font-bold text-primary-600 dark:text-primary-400">Simpel CRM</h1>
             </div>
-            <nav className="flex-1 p-4 space-y-2">
+            <nav className="flex-1 p-4 space-y-1">
                 {navItems.map((item) => (
                     <NavLink
                         key={item.path}
@@ -38,21 +46,30 @@ export const Sidebar: React.FC = () => {
                     </NavLink>
                 ))}
             </nav>
-            <div className="p-4 border-t border-gray-100 dark:border-gray-800 space-y-4">
+            <div className="p-4 border-t border-gray-100 dark:border-gray-800 space-y-3">
                 <button
                     onClick={toggleTheme}
-                    className="flex items-center gap-3 px-4 py-2 w-full rounded-xl text-gray-600 dark:text-gray-400 hover:bg-gray-50 dark:hover:bg-gray-800 transition-colors"
+                    className="flex items-center gap-3 px-4 py-2 w-full rounded-xl text-gray-600 dark:text-gray-400 hover:bg-gray-50 dark:hover:bg-gray-800 transition-colors text-sm"
                 >
                     {theme === 'light' ? <Moon className="w-5 h-5" /> : <Sun className="w-5 h-5" />}
-                    <span className="font-medium text-sm">{theme === 'light' ? 'Mörkt läge' : 'Ljust läge'}</span>
+                    <span className="font-medium">{theme === 'light' ? 'Mörkt läge' : 'Ljust läge'}</span>
+                </button>
+
+                <button
+                    onClick={handleSignOut}
+                    className="flex items-center gap-3 px-4 py-2 w-full rounded-xl text-red-600 dark:text-red-400 hover:bg-red-50 dark:hover:bg-red-900/10 transition-colors text-sm"
+                >
+                    <LogOut className="w-5 h-5" />
+                    <span className="font-medium">Logga ut</span>
                 </button>
 
                 <div className="flex items-center gap-3 p-3 rounded-xl bg-gray-50 dark:bg-gray-800">
-                    <div className="w-10 h-10 rounded-lg bg-yellow-400 flex items-center justify-center text-black font-bold text-[10px] tracking-tighter shadow-sm">
+                    <div className="w-10 h-10 rounded-lg bg-yellow-400 flex items-center justify-center text-black font-bold text-[10px] tracking-tighter shadow-sm flex-shrink-0">
                         ADGS
                     </div>
-                    <div>
-                        <p className="text-sm font-bold text-gray-900 dark:text-white tracking-wide">Spasovic & Gonzalez AB</p>
+                    <div className="min-w-0">
+                        <p className="text-xs font-bold text-gray-900 dark:text-white tracking-wide truncate">ADGS CRM</p>
+                        <p className="text-[10px] text-gray-500 truncate">{user?.email}</p>
                     </div>
                 </div>
             </div>

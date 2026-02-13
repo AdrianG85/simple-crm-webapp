@@ -1,12 +1,20 @@
-import React from 'react';
+import React, { useState } from 'react';
 import { useApp } from '../context/AppContext';
 import { useTheme } from '../context/ThemeContext';
-import { Coins, Briefcase, CheckCircle, TrendingUp, Moon, Sun } from 'lucide-react';
+import { Coins, Briefcase, CheckCircle, TrendingUp, Moon, Sun, LogOut } from 'lucide-react';
+import { useAuth } from '../context/AuthContext';
 import { cn } from '../lib/utils';
+import { DealModal } from '../components/DealModal';
+import type { Deal } from '../types';
 
 export const Dashboard: React.FC = () => {
-    const { deals, contacts, loading } = useApp();
+    const { deals, contacts, loading, updateDeal, deleteDeal } = useApp();
     const { theme, toggleTheme } = useTheme();
+    const { signOut } = useAuth();
+
+    const [isModalOpen, setIsModalOpen] = useState(false);
+    const [editingDeal, setEditingDeal] = useState<Deal | null>(null);
+    const [lastTap, setLastTap] = useState<number>(0);
 
     if (loading) {
         return (
@@ -30,6 +38,37 @@ export const Dashboard: React.FC = () => {
         .sort((a, b) => b.value - a.value)
         .slice(0, 5);
 
+    const handleEditDeal = (deal: Deal) => {
+        setEditingDeal(deal);
+        setIsModalOpen(true);
+    };
+
+    const handleUpdate = async (deal: Deal) => {
+        try {
+            await updateDeal(deal);
+        } catch (error) {
+            console.error('Failed to update deal:', error);
+            alert('Kunde inte uppdatera affären.');
+        }
+    };
+
+    const handleDelete = async (id: string) => {
+        try {
+            await deleteDeal(id);
+        } catch (error) {
+            console.error('Failed to delete deal:', error);
+            alert('Kunde inte ta bort affären.');
+        }
+    };
+
+    const handleTouchStart = (deal: Deal) => {
+        const now = Date.now();
+        if (now - lastTap < 300) {
+            handleEditDeal(deal);
+        }
+        setLastTap(now);
+    };
+
     return (
         <div className="space-y-6">
             <header className="mb-6 flex items-start justify-between">
@@ -38,18 +77,28 @@ export const Dashboard: React.FC = () => {
                     <p className="text-gray-500 dark:text-gray-400">Välkommen tillbaka! Här är läget just nu.</p>
                 </div>
 
-                {/* Mobile Dark Mode Toggle */}
-                <button
-                    onClick={toggleTheme}
-                    className="md:hidden p-2 rounded-lg text-gray-900 dark:text-white hover:bg-gray-100 dark:hover:bg-gray-800 transition-colors"
-                    aria-label="Toggle dark mode"
-                >
-                    {theme === 'dark' ? (
-                        <Sun className="w-5 h-5" />
-                    ) : (
-                        <Moon className="w-5 h-5" />
-                    )}
-                </button>
+                {/* Mobile Controls */}
+                <div className="flex items-center gap-2 md:hidden">
+                    <button
+                        onClick={toggleTheme}
+                        className="p-2 rounded-lg text-gray-900 dark:text-white hover:bg-gray-100 dark:hover:bg-gray-800 transition-colors"
+                        aria-label="Toggle dark mode"
+                    >
+                        {theme === 'dark' ? (
+                            <Sun className="w-5 h-5" />
+                        ) : (
+                            <Moon className="w-5 h-5" />
+                        )}
+                    </button>
+                    <button
+                        onClick={() => signOut()}
+                        className="p-2 rounded-lg text-red-600 dark:text-red-400 hover:bg-red-50 dark:hover:bg-red-900/20 transition-colors"
+                        aria-label="Logga ut"
+                        title="Logga ut"
+                    >
+                        <LogOut className="w-5 h-5" />
+                    </button>
+                </div>
             </header>
 
             {/* Key Metrics Grid */}
@@ -98,7 +147,7 @@ export const Dashboard: React.FC = () => {
             <div className="bg-white dark:bg-gray-800 rounded-2xl shadow-sm border border-gray-100 dark:border-gray-700 overflow-hidden transition-colors">
                 <div className="p-6 border-b border-gray-100 dark:border-gray-700 flex justify-between items-center">
                     <h3 className="font-bold text-gray-900 dark:text-white">Största Projektvärden</h3>
-                    <button className="text-sm text-primary-600 dark:text-primary-400 hover:text-primary-700 dark:hover:text-primary-300 font-medium">Se alla</button>
+                    <button className="text-sm text-primary-600 dark:text-primary-400 hover:text-primary-700 dark:hover:text-primary-300 font-medium focus:outline-none">Se alla</button>
                 </div>
                 <div>
                     {topProjects.length > 0 ? (
@@ -106,7 +155,13 @@ export const Dashboard: React.FC = () => {
                             {topProjects.map((deal) => {
                                 const contact = contacts.find(c => c.id === deal.contactId);
                                 return (
-                                    <div key={deal.id} className="p-4 flex items-center justify-between hover:bg-gray-50 dark:hover:bg-gray-700/50 transition-colors">
+                                    <div
+                                        key={deal.id}
+                                        onDoubleClick={() => handleEditDeal(deal)}
+                                        onTouchStart={() => handleTouchStart(deal)}
+                                        className="p-4 flex items-center justify-between hover:bg-gray-50 dark:hover:bg-gray-700/50 transition-colors cursor-pointer select-none group"
+                                        title="Dubbelklicka för att redigera"
+                                    >
                                         <div className="flex items-center gap-3">
                                             <div className={cn(
                                                 "w-10 h-10 rounded-full flex items-center justify-center text-white font-bold text-sm",
@@ -116,7 +171,7 @@ export const Dashboard: React.FC = () => {
                                                 {deal.title.substring(0, 1).toUpperCase()}
                                             </div>
                                             <div>
-                                                <h4 className="font-semibold text-gray-900 dark:text-white text-sm">{deal.title}</h4>
+                                                <h4 className="font-semibold text-gray-900 dark:text-white text-sm group-hover:text-primary-600 dark:group-hover:text-primary-400 transition-colors">{deal.title}</h4>
                                                 <p className="text-xs text-gray-500 dark:text-gray-400">Kund: {contact?.name || 'Okänd'}</p>
                                             </div>
                                         </div>
@@ -145,6 +200,14 @@ export const Dashboard: React.FC = () => {
                     )}
                 </div>
             </div>
+
+            <DealModal
+                isOpen={isModalOpen}
+                onClose={() => setIsModalOpen(false)}
+                onSubmit={handleUpdate}
+                onDelete={handleDelete}
+                initialData={editingDeal}
+            />
         </div>
     );
 };

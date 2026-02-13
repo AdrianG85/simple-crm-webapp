@@ -6,7 +6,8 @@ import type { Deal, DealStage } from '../types';
 import { cn } from '../lib/utils';
 import {
     DndContext,
-    closestCorners,
+    rectIntersection,
+    closestCenter,
     MouseSensor,
     TouchSensor,
     useSensor,
@@ -14,9 +15,10 @@ import {
     DragOverlay,
     defaultDropAnimationSideEffects,
     useDroppable,
+    pointerWithin,
 } from '@dnd-kit/core';
-import type { DragEndEvent, DragStartEvent } from '@dnd-kit/core';
-import { SortableContext, verticalListSortingStrategy } from '@dnd-kit/sortable';
+import type { DragEndEvent, DragStartEvent, CollisionDetection } from '@dnd-kit/core';
+import { restrictToWindowEdges, snapCenterToCursor } from '@dnd-kit/modifiers';
 import { KanbanColumn } from '../components/pipeline/KanbanColumn';
 import { SortableDealCard } from '../components/pipeline/SortableDealCard';
 
@@ -37,18 +39,21 @@ interface StageDropZoneProps {
 const StageDropZone: React.FC<StageDropZoneProps> = ({ column, isActive, count, onClick }) => {
     const { setNodeRef, isOver } = useDroppable({
         id: column.id,
+        disabled: false, // Explicitly ensure this is always a droppable target
     });
 
     return (
-        <button
+        <div
             ref={setNodeRef}
             onClick={onClick}
+            role="button"
+            tabIndex={0}
             className={cn(
-                "relative flex flex-col items-center justify-center px-1 py-2.5 rounded-xl text-xs font-medium transition-all border outline-none",
+                "relative flex flex-col items-center justify-center px-1 py-2.5 rounded-xl text-xs font-medium transition-all border outline-none cursor-pointer select-none pointer-events-auto",
                 isActive
                     ? "bg-white dark:bg-gray-800 text-primary-600 dark:text-primary-400 border-primary-600 dark:border-primary-400 shadow-sm ring-1 ring-primary-600 dark:ring-primary-400"
                     : "bg-white dark:bg-gray-800 text-gray-600 dark:text-gray-400 border-gray-200 dark:border-gray-700 hover:bg-gray-50 dark:hover:bg-gray-750",
-                isOver && "scale-105 border-primary-500 bg-primary-100/50 dark:bg-primary-900/40 ring-2 ring-primary-500 z-10"
+                isOver && "scale-105 border-primary-500 bg-primary-50 dark:bg-primary-900/40 ring-4 ring-primary-500/30 z-20 shadow-lg"
             )}
         >
             <span className="truncate w-full text-center px-1">{column.label.split(' / ')[0]}</span>
@@ -60,7 +65,7 @@ const StageDropZone: React.FC<StageDropZoneProps> = ({ column, isActive, count, 
             )}>
                 {count}
             </span>
-        </button>
+        </div>
     );
 };
 
@@ -80,11 +85,42 @@ export const PipelinePage: React.FC = () => {
         }),
         useSensor(TouchSensor, {
             activationConstraint: {
-                delay: 300,
-                tolerance: 8,
+                delay: 200,
+                tolerance: 20,
             },
         })
     );
+
+    // Custom collision detection strategy that filters out the active draggable
+    // This prevents the dragged card from being detected as its own drop target
+    const customCollisionDetection: CollisionDetection = (args) => {
+        const { active } = args;
+
+        // First try rectIntersection - more reliable for overlapping elements
+        const rectCollisions = rectIntersection(args);
+        const filteredRectCollisions = rectCollisions.filter(c => c.id !== active.id);
+
+        if (filteredRectCollisions.length > 0) {
+            return filteredRectCollisions;
+        }
+
+        // Then try pointer-based detection for precision
+        const pointerCollisions = pointerWithin(args);
+        const filteredPointerCollisions = pointerCollisions.filter(c => c.id !== active.id);
+
+        if (filteredPointerCollisions.length > 0) {
+            return filteredPointerCollisions;
+        }
+
+        // Fallback to closestCenter for reliability
+        const closestCollisions = closestCenter(args);
+
+        // CRITICAL: Filter out the active draggable itself!
+        // The dragged card is always closest to itself, so it appears first in the array
+        const filteredClosestCollisions = closestCollisions.filter(c => c.id !== active.id);
+
+        return filteredClosestCollisions;
+    };
 
     const handleCreate = async (deal: Deal) => {
         try {
@@ -108,7 +144,6 @@ export const PipelinePage: React.FC = () => {
         const { active } = event;
         setActiveId(active.id as string);
 
-        // Find the element to get its width
         const activeElement = document.querySelector(`[data-dnd-id="${active.id}"]`);
         if (activeElement) {
             setActiveWidth(activeElement.clientWidth);
@@ -126,7 +161,6 @@ export const PipelinePage: React.FC = () => {
         const activeDeal = deals.find((d) => d.id === dealId);
         if (!activeDeal) return;
 
-        // If dropped over a column (id is a stage)
         const isColumn = COLUMNS.some((c) => c.id === overId);
 
         if (isColumn) {
@@ -134,7 +168,6 @@ export const PipelinePage: React.FC = () => {
             if (activeDeal.stage !== newStage) {
                 try {
                     await updateDeal({ ...activeDeal, stage: newStage });
-                    // Switch active stage on mobile view if drop on a button
                     if (window.innerWidth < 768) {
                         setActiveStage(newStage);
                     }
@@ -143,7 +176,6 @@ export const PipelinePage: React.FC = () => {
                 }
             }
         } else {
-            // If dropped over another deal, find that deal's stage
             const overDeal = deals.find((d) => d.id === overId);
             if (overDeal && activeDeal.stage !== overDeal.stage) {
                 try {
@@ -163,26 +195,6 @@ export const PipelinePage: React.FC = () => {
     const openEditModal = (deal: Deal) => {
         setEditingDeal(deal);
         setIsModalOpen(true);
-    };
-
-    const moveDeal = async (e: React.MouseEvent, deal: Deal, direction: 'next' | 'prev') => {
-        e.stopPropagation();
-        const currentIndex = COLUMNS.findIndex(c => c.id === deal.stage);
-        if (currentIndex === -1) return;
-
-        let newIndex = direction === 'next' ? currentIndex + 1 : currentIndex - 1;
-        if (newIndex < 0) newIndex = 0;
-        if (newIndex >= COLUMNS.length) newIndex = COLUMNS.length - 1;
-
-        const newStage = COLUMNS[newIndex].id;
-        if (newStage !== deal.stage) {
-            try {
-                await updateDeal({ ...deal, stage: newStage });
-            } catch (error) {
-                console.error('Failed to move deal:', error);
-                alert('Kunde inte flytta affären.');
-            }
-        }
     };
 
     const activeDeal = deals.find(d => d.id === activeId);
@@ -206,7 +218,7 @@ export const PipelinePage: React.FC = () => {
 
             <DndContext
                 sensors={sensors}
-                collisionDetection={closestCorners}
+                collisionDetection={customCollisionDetection}
                 onDragStart={handleDragStart}
                 onDragEnd={handleDragEnd}
             >
@@ -237,27 +249,24 @@ export const PipelinePage: React.FC = () => {
                                         <span className="font-bold text-gray-900 dark:text-white text-sm">{new Intl.NumberFormat('sv-SE', { style: 'currency', currency: 'SEK', maximumFractionDigits: 0 }).format(totalValue)}</span>
                                     </div>
 
-                                    <SortableContext items={columnDeals.map(d => d.id)} strategy={verticalListSortingStrategy}>
-                                        {columnDeals.length > 0 ? (
-                                            columnDeals.map((deal) => {
-                                                const contact = contacts.find(c => c.id === deal.contactId);
-                                                return (
-                                                    <SortableDealCard
-                                                        key={deal.id}
-                                                        deal={deal}
-                                                        contactName={contact?.name}
-                                                        onClick={openEditModal}
-                                                        onMove={moveDeal}
-                                                    />
-                                                );
-                                            })
-                                        ) : (
-                                            <div className="py-12 flex flex-col items-center justify-center text-gray-400 dark:text-gray-500 border-2 border-dashed border-gray-100 dark:border-gray-700 rounded-xl">
-                                                <Plus className="w-12 h-12 opacity-50 mb-2" />
-                                                <span className="text-sm">Inga affärer i denna fas</span>
-                                            </div>
-                                        )}
-                                    </SortableContext>
+                                    {columnDeals.length > 0 ? (
+                                        columnDeals.map((deal) => {
+                                            const contact = contacts.find(c => c.id === deal.contactId);
+                                            return (
+                                                <SortableDealCard
+                                                    key={deal.id}
+                                                    deal={deal}
+                                                    contactName={contact?.name}
+                                                    onClick={openEditModal}
+                                                />
+                                            );
+                                        })
+                                    ) : (
+                                        <div className="py-12 flex flex-col items-center justify-center text-gray-400 dark:text-gray-500 border-2 border-dashed border-gray-100 dark:border-gray-700 rounded-xl">
+                                            <Plus className="w-12 h-12 opacity-50 mb-2" />
+                                            <span className="text-sm">Inga affärer i denna fas</span>
+                                        </div>
+                                    )}
                                 </div>
                             );
                         })()}
@@ -274,33 +283,37 @@ export const PipelinePage: React.FC = () => {
                                 deals={deals.filter(d => d.stage === column.id)}
                                 contacts={contacts}
                                 onEditDeal={openEditModal}
-                                onMoveDeal={moveDeal}
                             />
                         ))}
                     </div>
                 </div>
 
-                <DragOverlay dropAnimation={{
-                    sideEffects: defaultDropAnimationSideEffects({
-                        styles: {
-                            active: {
-                                opacity: '0.5',
+                <DragOverlay
+                    modifiers={window.innerWidth < 768 ? [snapCenterToCursor, restrictToWindowEdges] : [restrictToWindowEdges]}
+                    dropAnimation={{
+                        sideEffects: defaultDropAnimationSideEffects({
+                            styles: {
+                                active: {
+                                    opacity: '0.5',
+                                },
                             },
-                        },
-                    }),
-                }}>
+                        }),
+                    }}
+                >
                     {activeId && activeDeal ? (
                         <div
                             style={{
-                                width: activeWidth ? `${activeWidth}px` : 'auto',
+                                width: window.innerWidth < 768 ? '180px' : (activeWidth ? `${activeWidth}px` : 'auto'),
                             }}
-                            className="opacity-100 scale-105 rotate-2 cursor-grabbing shadow-2xl rounded-xl ring-2 ring-primary-500 bg-white dark:bg-gray-800"
+                            className={cn(
+                                "opacity-100 shadow-2xl rounded-xl ring-2 ring-primary-500 bg-white dark:bg-gray-800 pointer-events-none transition-transform duration-200",
+                                window.innerWidth >= 768 ? "scale-105 rotate-2 cursor-grabbing" : "scale-90 rotate-0"
+                            )}
                         >
                             <SortableDealCard
                                 deal={activeDeal}
                                 contactName={activeContact?.name}
                                 onClick={() => { }}
-                                onMove={() => { }}
                             />
                         </div>
                     ) : null}
