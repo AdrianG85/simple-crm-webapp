@@ -108,7 +108,7 @@ export const Dashboard: React.FC = () => {
                     <div className="absolute right-0 top-0 p-4 opacity-5 dark:opacity-10">
                         <Coins className="w-24 h-24 text-gray-900 dark:text-white" />
                     </div>
-                    <span className="text-gray-500 dark:text-gray-400 font-medium text-sm z-10">Total Pipeline</span>
+                    <span className="text-gray-500 dark:text-gray-400 font-medium text-sm z-10">Total försäljning</span>
                     <div className="z-10">
                         <h2 className="text-3xl font-bold text-primary-700 dark:text-primary-400">
                             {new Intl.NumberFormat('sv-SE', { style: 'currency', currency: 'SEK', maximumFractionDigits: 0 }).format(totalPipelineValue)}
@@ -185,7 +185,9 @@ export const Dashboard: React.FC = () => {
                                                     deal.stage === 'placed' ? 'bg-amber-100 dark:bg-amber-900/30 text-amber-800 dark:text-amber-300' :
                                                         'bg-slate-100 dark:bg-slate-800 text-slate-700 dark:text-slate-300'
                                             )}>
-                                                {deal.stage}
+                                                {deal.stage === 'potential' ? 'Möjlighet' :
+                                                    deal.stage === 'placed' ? 'Planerat' :
+                                                        deal.stage === 'won' ? 'Vunnet' : 'Förlorat'}
                                             </span>
                                         </div>
                                     </div>

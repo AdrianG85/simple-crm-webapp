@@ -38,8 +38,8 @@ interface StageDropZoneProps {
 
 const StageDropZone: React.FC<StageDropZoneProps> = ({ column, isActive, count, onClick }) => {
     const { setNodeRef, isOver } = useDroppable({
-        id: column.id,
-        disabled: false, // Explicitly ensure this is always a droppable target
+        id: `mobile-${column.id}`, // Prefix to avoid collision with desktop columns
+        disabled: false,
     });
 
     return (
@@ -161,10 +161,17 @@ export const PipelinePage: React.FC = () => {
         const activeDeal = deals.find((d) => d.id === dealId);
         if (!activeDeal) return;
 
-        const isColumn = COLUMNS.some((c) => c.id === overId);
+        let targetId = overId;
+        const isMobileDrop = targetId.startsWith('mobile-');
+
+        if (isMobileDrop) {
+            targetId = targetId.replace('mobile-', '');
+        }
+
+        const isColumn = COLUMNS.some((c) => c.id === targetId);
 
         if (isColumn) {
-            const newStage = overId as DealStage;
+            const newStage = targetId as DealStage;
             if (activeDeal.stage !== newStage) {
                 try {
                     await updateDeal({ ...activeDeal, stage: newStage });

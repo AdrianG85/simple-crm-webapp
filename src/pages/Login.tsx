@@ -94,7 +94,7 @@ export const LoginPage: React.FC = () => {
                     <div className="flex justify-center">
                         <img
                             src="/adgs-logo.png"
-                            alt="ADGS Logo"
+                            alt="ADGS Logotyp"
                             className="w-20 h-20 rounded-2xl shadow-md border border-gray-100 dark:border-gray-700 object-cover"
                         />
                     </div>
@@ -102,7 +102,7 @@ export const LoginPage: React.FC = () => {
                         Välkommen tillbaka
                     </h2>
                     <p className="mt-2 text-sm text-gray-500 dark:text-gray-400">
-                        Logga in för att komma åt din shared workspace
+                        Logga in för att komma åt din delade arbetsyta
                     </p>
                 </div>
 
