@@ -1,7 +1,7 @@
 import React from 'react';
 import { useSortable } from '@dnd-kit/sortable';
 import { CSS } from '@dnd-kit/utilities';
-import { AlertCircle, Bell } from 'lucide-react';
+import { AlertCircle, Bell, GripVertical } from 'lucide-react';
 import type { Deal } from '../../types';
 import { cn } from '../../lib/utils';
 import { useApp } from '../../context/AppContext';
@@ -31,9 +31,9 @@ export const SortableDealCard: React.FC<SortableDealCardProps> = ({ deal, contac
     };
 
     const lastClickTimeRef = React.useRef<number>(0);
+    const isMobile = typeof window !== 'undefined' && window.innerWidth < 768;
 
     const handleCardClick = () => {
-        const isMobile = window.innerWidth < 768;
         if (!isMobile) {
             onClick(deal);
             return;
@@ -55,14 +55,26 @@ export const SortableDealCard: React.FC<SortableDealCardProps> = ({ deal, contac
             style={style}
             data-dnd-id={deal.id}
             {...attributes}
-            {...listeners}
+            {...(isMobile ? {} : listeners)}
             onClick={handleCardClick}
             className={cn(
-                "bg-white dark:bg-gray-700 p-3 md:p-4 rounded-xl shadow-sm border border-gray-100 dark:border-gray-600 hover:shadow-md transition-[background-color,border-color,box-shadow,opacity] cursor-grab active:cursor-grabbing group relative touch-none",
+                "bg-white dark:bg-gray-700 p-3 md:p-4 rounded-xl shadow-sm border border-gray-100 dark:border-gray-600 hover:shadow-md transition-[background-color,border-color,box-shadow,opacity] group relative",
+                !isMobile && "cursor-grab active:cursor-grabbing",
                 isDragging && "opacity-30 border-primary-300 dark:border-primary-700"
             )}
         >
-            <div className="flex justify-between items-start mb-1 md:mb-2">
+            {/* Mobile Drag Handle */}
+            {isMobile && (
+                <div
+                    {...listeners}
+                    className="absolute left-0 top-0 bottom-0 w-8 flex items-center justify-center cursor-grab active:cursor-grabbing touch-none"
+                    onClick={(e) => e.stopPropagation()}
+                >
+                    <GripVertical className="w-4 h-4 text-gray-300 dark:text-gray-600" />
+                </div>
+            )}
+
+            <div className={cn("flex justify-between items-start mb-1 md:mb-2", isMobile && "ml-6")}>
                 <div className="flex-1 mr-2">
                     <h4 className="font-semibold text-gray-900 dark:text-white group-hover:text-primary-600 dark:group-hover:text-primary-400 transition-colors line-clamp-1 text-sm md:text-base">{deal.title}</h4>
                 </div>
@@ -87,12 +99,12 @@ export const SortableDealCard: React.FC<SortableDealCardProps> = ({ deal, contac
                     </span>
                 </div>
             </div>
-            <p className="text-[10px] md:text-xs text-gray-500 dark:text-gray-400 mb-2 md:mb-3 flex items-center gap-1">
+            <p className={cn("text-[10px] md:text-xs text-gray-500 dark:text-gray-400 mb-2 md:mb-3 flex items-center gap-1", isMobile && "ml-6")}>
                 <AlertCircle className="w-2.5 h-2.5 md:w-3 md:h-3" />
                 {deal.expectedCloseDate || 'Inget datum'}
             </p>
 
-            <div className="mt-1 md:mt-2 pt-1 md:pt-2 border-t border-gray-50 dark:border-gray-600 flex justify-between items-center">
+            <div className={cn("mt-1 md:mt-2 pt-1 md:pt-2 border-t border-gray-50 dark:border-gray-600 flex justify-between items-center", isMobile && "ml-6")}>
                 <span className="text-[10px] md:text-xs text-gray-400 dark:text-gray-500 truncate">
                     Kund: {contactName || 'Okänd'}
                 </span>
@@ -108,3 +120,4 @@ export const SortableDealCard: React.FC<SortableDealCardProps> = ({ deal, contac
         </div>
     );
 };
+

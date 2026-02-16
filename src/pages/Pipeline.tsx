@@ -24,10 +24,41 @@ import { SortableDealCard } from '../components/pipeline/SortableDealCard';
 
 const COLUMNS: { id: DealStage; label: string; color: string }[] = [
     { id: 'potential', label: 'Möjlighet', color: 'bg-blue-100 text-blue-800 dark:bg-blue-900/30 dark:text-blue-300' },
-    { id: 'placed', label: 'Planerat / Offererat', color: 'bg-amber-100 text-amber-800 border-amber-200' },
-    { id: 'won', label: 'Vunnet', color: 'bg-green-100 text-green-800 border-green-200' },
-    { id: 'lost', label: 'Förlorat / Avböjt', color: 'bg-red-50 text-red-800 border-red-100' },
+    { id: 'placed', label: 'Planerat / Offererat', color: 'bg-amber-100 text-amber-800 dark:bg-amber-900/30 dark:text-amber-300' },
+    { id: 'won', label: 'Vunnet', color: 'bg-green-100 text-green-800 dark:bg-green-900/30 dark:text-green-300' },
+    { id: 'lost', label: 'Förlorat / Avböjt', color: 'bg-red-50 text-red-800 dark:bg-red-900/30 dark:text-red-300' },
 ];
+
+const STAGE_MOBILE_COLORS: Record<DealStage, { active: string; hover: string; over: string; badge: string; header: string }> = {
+    potential: {
+        active: "bg-blue-50 dark:bg-blue-900/20 text-blue-700 dark:text-blue-300 border-blue-200 dark:border-blue-800 ring-blue-500/30",
+        hover: "hover:bg-blue-50 dark:hover:bg-blue-900/10",
+        over: "scale-105 border-blue-500 bg-blue-100 dark:bg-blue-900/40 ring-blue-500/30 shadow-lg",
+        badge: "bg-blue-100 dark:bg-blue-900/40 text-blue-700 dark:text-blue-300",
+        header: "bg-blue-50/50 dark:bg-blue-900/20 border-blue-100 dark:border-blue-800",
+    },
+    placed: {
+        active: "bg-amber-50 dark:bg-amber-900/20 text-amber-700 dark:text-amber-300 border-amber-200 dark:border-amber-800 ring-amber-500/30",
+        hover: "hover:bg-amber-50 dark:hover:bg-amber-900/10",
+        over: "scale-105 border-amber-500 bg-amber-100 dark:bg-amber-900/40 ring-amber-500/30 shadow-lg",
+        badge: "bg-amber-100 dark:bg-amber-900/40 text-amber-700 dark:text-amber-300",
+        header: "bg-amber-50/50 dark:bg-amber-900/20 border-amber-100 dark:border-amber-800",
+    },
+    won: {
+        active: "bg-green-50 dark:bg-green-900/20 text-green-700 dark:text-green-300 border-green-200 dark:border-green-800 ring-green-500/30",
+        hover: "hover:bg-green-50 dark:hover:bg-green-900/10",
+        over: "scale-105 border-green-500 bg-green-100 dark:bg-green-900/40 ring-green-500/30 shadow-lg",
+        badge: "bg-green-100 dark:bg-green-900/40 text-green-700 dark:text-green-300",
+        header: "bg-green-50/50 dark:bg-green-900/20 border-green-100 dark:border-green-800",
+    },
+    lost: {
+        active: "bg-red-50 dark:bg-red-900/20 text-red-700 dark:text-red-300 border-red-200 dark:border-red-800 ring-red-500/30",
+        hover: "hover:bg-red-50 dark:hover:bg-red-900/10",
+        over: "scale-105 border-red-500 bg-red-100 dark:bg-red-900/40 ring-red-500/30 shadow-lg",
+        badge: "bg-red-100 dark:bg-red-900/40 text-red-700 dark:text-red-300",
+        header: "bg-red-50/50 dark:bg-red-900/20 border-red-100 dark:border-red-800",
+    }
+};
 
 interface StageDropZoneProps {
     column: typeof COLUMNS[0];
@@ -42,6 +73,8 @@ const StageDropZone: React.FC<StageDropZoneProps> = ({ column, isActive, count, 
         disabled: false,
     });
 
+    const theme = STAGE_MOBILE_COLORS[column.id];
+
     return (
         <div
             ref={setNodeRef}
@@ -51,16 +84,16 @@ const StageDropZone: React.FC<StageDropZoneProps> = ({ column, isActive, count, 
             className={cn(
                 "relative flex flex-col items-center justify-center px-1 py-2.5 rounded-xl text-xs font-medium transition-all border outline-none cursor-pointer select-none pointer-events-auto",
                 isActive
-                    ? "bg-white dark:bg-gray-800 text-primary-600 dark:text-primary-400 border-primary-600 dark:border-primary-400 shadow-sm ring-1 ring-primary-600 dark:ring-primary-400"
-                    : "bg-white dark:bg-gray-800 text-gray-600 dark:text-gray-400 border-gray-200 dark:border-gray-700 hover:bg-gray-50 dark:hover:bg-gray-750",
-                isOver && "scale-105 border-primary-500 bg-primary-50 dark:bg-primary-900/40 ring-4 ring-primary-500/30 z-20 shadow-lg"
+                    ? `${theme.active} shadow-sm ring-1`
+                    : `bg-white dark:bg-gray-800 text-gray-600 dark:text-gray-400 border-gray-200 dark:border-gray-700 ${theme.hover}`,
+                isOver && `${theme.over} z-20 ring-4`
             )}
         >
             <span className="truncate w-full text-center px-1">{column.label.split(' / ')[0]}</span>
             <span className={cn(
                 "mt-0.5 px-1.5 py-0 rounded-full text-[9px] font-bold",
                 isActive
-                    ? "bg-primary-100 dark:bg-primary-900/40 text-primary-700 dark:text-primary-300"
+                    ? theme.badge
                     : "bg-gray-100 dark:bg-gray-700 text-gray-600 dark:text-gray-400"
             )}>
                 {count}
@@ -85,8 +118,7 @@ export const PipelinePage: React.FC = () => {
         }),
         useSensor(TouchSensor, {
             activationConstraint: {
-                delay: 250,
-                tolerance: 8,
+                distance: 15,
             },
         })
     );
@@ -243,41 +275,48 @@ export const PipelinePage: React.FC = () => {
                         ))}
                     </div>
 
-                    <div className="flex-1 overflow-y-auto min-h-0 pt-1 pb-20 overscroll-none">
-                        {(() => {
-                            const column = COLUMNS.find(c => c.id === activeStage)!;
-                            const columnDeals = deals.filter(d => d.stage === activeStage);
-                            const totalValue = columnDeals.reduce((sum, d) => sum + d.value, 0);
+                    {(() => {
+                        const column = COLUMNS.find(c => c.id === activeStage)!;
+                        const columnDeals = deals.filter(d => d.stage === activeStage);
+                        const totalValue = columnDeals.reduce((sum, d) => sum + d.value, 0);
 
-                            return (
-                                <div className="space-y-2">
-                                    <div className={cn("p-3 rounded-xl border mb-2 flex justify-between items-center transition-colors", column.color.replace('bg-', 'bg-opacity-20 ' + column.color.split(' ')[0]))}>
-                                        <span className="font-semibold text-gray-900 dark:text-white text-sm">{column.label}</span>
-                                        <span className="font-bold text-gray-900 dark:text-white text-sm">{new Intl.NumberFormat('sv-SE', { style: 'currency', currency: 'SEK', maximumFractionDigits: 0 }).format(totalValue)}</span>
-                                    </div>
-
-                                    {columnDeals.length > 0 ? (
-                                        columnDeals.map((deal) => {
-                                            const contact = contacts.find(c => c.id === deal.contactId);
-                                            return (
-                                                <SortableDealCard
-                                                    key={deal.id}
-                                                    deal={deal}
-                                                    contactName={contact?.name}
-                                                    onClick={openEditModal}
-                                                />
-                                            );
-                                        })
-                                    ) : (
-                                        <div className="py-12 flex flex-col items-center justify-center text-gray-400 dark:text-gray-500 border-2 border-dashed border-gray-100 dark:border-gray-700 rounded-xl">
-                                            <Plus className="w-12 h-12 opacity-50 mb-2" />
-                                            <span className="text-sm">Inga affärer i denna fas</span>
-                                        </div>
-                                    )}
+                        return (
+                            <>
+                                {/* Fixed Stage Header */}
+                                <div className={cn(
+                                    "p-3 rounded-xl border mb-3 flex justify-between items-center transition-all flex-none",
+                                    STAGE_MOBILE_COLORS[activeStage].header
+                                )}>
+                                    <span className="font-semibold text-gray-900 dark:text-white text-sm">{column.label}</span>
+                                    <span className="font-bold text-gray-900 dark:text-white text-sm">{new Intl.NumberFormat('sv-SE', { style: 'currency', currency: 'SEK', maximumFractionDigits: 0 }).format(totalValue)}</span>
                                 </div>
-                            );
-                        })()}
-                    </div>
+
+                                {/* Scrollable Cards Area */}
+                                <div className="flex-1 overflow-y-auto min-h-0 pb-20 overscroll-none">
+                                    <div className="space-y-2">
+                                        {columnDeals.length > 0 ? (
+                                            columnDeals.map((deal) => {
+                                                const contact = contacts.find(c => c.id === deal.contactId);
+                                                return (
+                                                    <SortableDealCard
+                                                        key={deal.id}
+                                                        deal={deal}
+                                                        contactName={contact?.name}
+                                                        onClick={openEditModal}
+                                                    />
+                                                );
+                                            })
+                                        ) : (
+                                            <div className="py-12 flex flex-col items-center justify-center text-gray-400 dark:text-gray-500 border-2 border-dashed border-gray-100 dark:border-gray-700 rounded-xl">
+                                                <Plus className="w-12 h-12 opacity-50 mb-2" />
+                                                <span className="text-sm">Inga affärer i denna fas</span>
+                                            </div>
+                                        )}
+                                    </div>
+                                </div>
+                            </>
+                        );
+                    })()}
                 </div>
 
                 {/* Desktop View */}
