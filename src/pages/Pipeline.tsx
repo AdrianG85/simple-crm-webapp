@@ -85,8 +85,8 @@ export const PipelinePage: React.FC = () => {
         }),
         useSensor(TouchSensor, {
             activationConstraint: {
-                delay: 200,
-                tolerance: 20,
+                delay: 250,
+                tolerance: 8,
             },
         })
     );

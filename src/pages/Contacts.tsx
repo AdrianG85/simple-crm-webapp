@@ -136,9 +136,9 @@ export const ContactsPage: React.FC = () => {
                                     </div>
                                 )}
                                 {contact.notes && (
-                                    <div className="mt-3 pt-3 border-t border-gray-50 flex flex-col gap-1">
-                                        <span className="text-[10px] font-bold text-gray-400 uppercase tracking-wider">Anteckningar</span>
-                                        <p className="text-xs text-gray-500 line-clamp-2 italic">"{contact.notes}"</p>
+                                    <div className="mt-3 pt-3 border-t border-gray-50 dark:border-gray-700 flex flex-col gap-1">
+                                        <span className="text-[10px] font-bold text-gray-400 dark:text-gray-500 uppercase tracking-wider">Anteckningar</span>
+                                        <p className="text-xs text-gray-500 dark:text-gray-400 line-clamp-2 italic">"{contact.notes}"</p>
                                     </div>
                                 )}
                             </div>
