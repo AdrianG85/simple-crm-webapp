@@ -10,7 +10,7 @@ import type { Deal } from '../types';
 export const Dashboard: React.FC = () => {
     const { deals, contacts, loading, updateDeal, deleteDeal } = useApp();
     const { theme, toggleTheme } = useTheme();
-    const { signOut } = useAuth();
+    const { signOut, user } = useAuth();
 
     const [isModalOpen, setIsModalOpen] = useState(false);
     const [editingDeal, setEditingDeal] = useState<Deal | null>(null);
@@ -72,9 +72,19 @@ export const Dashboard: React.FC = () => {
     return (
         <div className="space-y-6">
             <header className="mb-6 flex items-start justify-between">
-                <div>
-                    <h1 className="text-2xl font-bold text-gray-900 dark:text-white">Översikt</h1>
-                    <p className="text-gray-500 dark:text-gray-400">Välkommen tillbaka! Här är läget just nu.</p>
+                <div className="flex items-center gap-3">
+                    {/* Mobile-Only Logo */}
+                    <img
+                        src="/adgs-logo.png"
+                        alt="ADGS Logo"
+                        className="md:hidden w-12 h-12 rounded-xl shadow-md border border-gray-100 dark:border-gray-600 object-cover"
+                    />
+                    <div>
+                        <h1 className="text-2xl font-bold text-gray-900 dark:text-white">Översikt</h1>
+                        <p className="text-gray-500 dark:text-gray-400">
+                            <span className="capitalize">Välkommen tillbaka - {user?.email?.split('@')[0] || 'Användare'}</span>
+                        </p>
+                    </div>
                 </div>
 
                 {/* Mobile Controls */}

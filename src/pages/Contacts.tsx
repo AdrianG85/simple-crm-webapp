@@ -82,8 +82,18 @@ export const ContactsPage: React.FC = () => {
                         >
                             <div className="flex items-start justify-between mb-4">
                                 <div className="flex items-center gap-3">
-                                    <div className="w-12 h-12 rounded-full bg-primary-100 text-primary-700 flex items-center justify-center font-bold text-lg">
-                                        {contact.name.charAt(0).toUpperCase()}
+                                    <div className="relative">
+                                        <div className="w-12 h-12 rounded-full bg-primary-100 text-primary-700 flex items-center justify-center font-bold text-lg">
+                                            {contact.name.charAt(0).toUpperCase()}
+                                        </div>
+                                        {contact.createdBy && (
+                                            <div
+                                                title={`Skapad av: ${contact.createdBy}`}
+                                                className="absolute -bottom-1 -right-1 w-5 h-5 rounded-full bg-white dark:bg-gray-800 border-2 border-primary-50 dark:border-gray-700 flex items-center justify-center text-primary-600 dark:text-primary-400 text-[10px] font-black"
+                                            >
+                                                {contact.createdBy?.[0].toUpperCase()}
+                                            </div>
+                                        )}
                                     </div>
                                     <div>
                                         <h3 className="font-bold text-gray-900 group-hover:text-primary-600 transition-colors">{contact.name}</h3>

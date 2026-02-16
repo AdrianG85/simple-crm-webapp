@@ -9,6 +9,7 @@ export interface Contact {
     notes: string;
     createdAt: string;
     updatedAt: string;
+    createdBy?: string;
 }
 
 export interface Deal {
@@ -22,4 +23,5 @@ export interface Deal {
     notes: string;
     createdAt: string;
     updatedAt: string;
+    createdBy?: string;
 }

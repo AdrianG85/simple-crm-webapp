@@ -24,8 +24,15 @@ export const Sidebar: React.FC = () => {
 
     return (
         <aside className="hidden md:flex flex-col w-64 bg-white dark:bg-gray-900 border-r border-gray-200 dark:border-gray-800 h-screen fixed left-0 top-0 z-30 transition-colors duration-200">
-            <div className="p-6 border-b border-gray-100 dark:border-gray-800 flex justify-between items-center">
-                <h1 className="text-2xl font-bold text-primary-600 dark:text-primary-400">Simpel CRM</h1>
+            <div className="p-4 border-b border-gray-100 dark:border-gray-800">
+                <div className="flex items-center gap-3 p-2 rounded-xl">
+                    <div className="w-10 h-10 rounded-lg bg-yellow-400 flex items-center justify-center text-black font-bold text-[10px] tracking-tighter shadow-sm flex-shrink-0">
+                        ADGS
+                    </div>
+                    <div className="min-w-0">
+                        <p className="text-[11px] font-medium text-gray-600 dark:text-gray-200 truncate tracking-tight">{user?.email}</p>
+                    </div>
+                </div>
             </div>
             <nav className="flex-1 p-4 space-y-1">
                 {navItems.map((item) => (
@@ -63,15 +70,6 @@ export const Sidebar: React.FC = () => {
                     <span className="font-medium">Logga ut</span>
                 </button>
 
-                <div className="flex items-center gap-3 p-3 rounded-xl bg-gray-50 dark:bg-gray-800">
-                    <div className="w-10 h-10 rounded-lg bg-yellow-400 flex items-center justify-center text-black font-bold text-[10px] tracking-tighter shadow-sm flex-shrink-0">
-                        ADGS
-                    </div>
-                    <div className="min-w-0">
-                        <p className="text-xs font-bold text-gray-900 dark:text-white tracking-wide truncate">ADGS CRM</p>
-                        <p className="text-[10px] text-gray-500 truncate">{user?.email}</p>
-                    </div>
-                </div>
             </div>
         </aside>
     );

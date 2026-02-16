@@ -1,6 +1,7 @@
 import React, { useState } from 'react';
 import { useApp } from '../context/AppContext';
 import { CustomCalendar } from '../components/CustomCalendar';
+import { WeeklyGoalTracker } from '../components/WeeklyGoalTracker';
 import type { Deal } from '../types';
 
 export const CalendarPage: React.FC = () => {
@@ -37,9 +38,21 @@ export const CalendarPage: React.FC = () => {
                 </div>
             </div>
 
-            {/* Calendar View */}
-            <div className="flex-1 bg-white dark:bg-gray-800 rounded-2xl border border-gray-200 dark:border-gray-700 shadow-sm overflow-hidden flex flex-col min-h-[500px] md:min-h-0">
-                <CustomCalendar deals={deals} onDateClick={handleDateClick} />
+            {/* Calendar View - Desktop with Sidebar */}
+            <div className="flex-1 flex flex-col md:flex-row gap-4 min-h-0">
+                {/* Desktop Sidebar */}
+                <div className="hidden md:block w-64 flex-shrink-0">
+                    <WeeklyGoalTracker />
+                </div>
+
+                {/* Calendar */}
+                <div className="flex-1 bg-white dark:bg-gray-800 rounded-2xl border border-gray-200 dark:border-gray-700 shadow-sm overflow-hidden flex flex-col min-h-[500px] md:min-h-0">
+                    {/* Mobile Goal Tracker - Inside Calendar Container */}
+                    <div className="md:hidden p-4 border-b border-gray-200 dark:border-gray-700">
+                        <WeeklyGoalTracker />
+                    </div>
+                    <CustomCalendar deals={deals} onDateClick={handleDateClick} />
+                </div>
             </div>
 
             {/* Deal Details Modal */}

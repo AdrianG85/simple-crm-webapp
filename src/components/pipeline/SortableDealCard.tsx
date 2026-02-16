@@ -71,10 +71,18 @@ export const SortableDealCard: React.FC<SortableDealCardProps> = ({ deal, contac
                 {deal.expectedCloseDate || 'Inget datum'}
             </p>
 
-            <div className="mt-1 md:mt-2 pt-1 md:pt-2 border-t border-gray-50 dark:border-gray-600">
+            <div className="mt-1 md:mt-2 pt-1 md:pt-2 border-t border-gray-50 dark:border-gray-600 flex justify-between items-center">
                 <span className="text-[10px] md:text-xs text-gray-400 dark:text-gray-500 truncate">
                     Kund: {contactName || 'Okänd'}
                 </span>
+                {deal.createdBy && (
+                    <div
+                        title={`Skapad av: ${deal.createdBy}`}
+                        className="w-5 h-5 rounded-full bg-primary-100 dark:bg-primary-900/30 text-primary-700 dark:text-primary-300 flex items-center justify-center text-[9px] font-bold border border-primary-200 dark:border-primary-800"
+                    >
+                        {deal.createdBy?.[0].toUpperCase()}
+                    </div>
+                )}
             </div>
         </div>
     );

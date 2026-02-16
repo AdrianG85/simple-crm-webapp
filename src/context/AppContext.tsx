@@ -1,5 +1,6 @@
 import React, { createContext, useContext, useState, useEffect } from 'react';
 import { supabase } from '../lib/supabase';
+import { useAuth } from './AuthContext';
 import type { Contact, Deal } from '../types';
 
 interface AppContextType {
@@ -20,6 +21,7 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
     const [contacts, setContacts] = useState<Contact[]>([]);
     const [deals, setDeals] = useState<Deal[]>([]);
     const [loading, setLoading] = useState(true);
+    const { user } = useAuth();
 
     // Initial load
     useEffect(() => {
@@ -87,7 +89,7 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
     const addContact = async (contact: Partial<Contact>) => {
         const { error } = await supabase
             .from('contacts')
-            .insert([contact]);
+            .insert([{ ...contact, createdBy: user?.email }]);
 
         if (error) throw error;
         await fetchContacts();
@@ -116,7 +118,7 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
     const addDeal = async (deal: Partial<Deal>) => {
         const { error } = await supabase
             .from('deals')
-            .insert([deal]);
+            .insert([{ ...deal, createdBy: user?.email }]);
 
         if (error) throw error;
         await fetchDeals();
