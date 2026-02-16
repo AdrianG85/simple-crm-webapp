@@ -79,12 +79,12 @@ export const ContactsPage: React.FC = () => {
                         <div
                             key={contact.id}
                             onClick={() => openEditModal(contact)}
-                            className="bg-white p-5 rounded-2xl shadow-sm border border-gray-100 hover:shadow-md transition-shadow cursor-pointer group"
+                            className="bg-white dark:bg-gray-800 p-5 rounded-2xl shadow-sm border border-gray-100 dark:border-gray-700 hover:shadow-md dark:hover:shadow-lg dark:hover:shadow-black/20 transition-all cursor-pointer group"
                         >
                             <div className="flex items-start justify-between mb-4">
                                 <div className="flex items-center gap-3">
                                     <div className="relative">
-                                        <div className="w-12 h-12 rounded-full bg-primary-100 text-primary-700 flex items-center justify-center font-bold text-lg">
+                                        <div className="w-12 h-12 rounded-full bg-primary-100 dark:bg-primary-900/30 text-primary-700 dark:text-primary-400 flex items-center justify-center font-bold text-lg">
                                             {contact.name.charAt(0).toUpperCase()}
                                         </div>
                                         {contact.createdBy && (
@@ -97,9 +97,9 @@ export const ContactsPage: React.FC = () => {
                                         )}
                                     </div>
                                     <div>
-                                        <h3 className="font-bold text-gray-900 group-hover:text-primary-600 transition-colors">{contact.name}</h3>
+                                        <h3 className="font-bold text-gray-900 dark:text-white group-hover:text-primary-600 dark:group-hover:text-primary-400 transition-colors">{contact.name}</h3>
                                         {contact.company && (
-                                            <p className="text-sm text-gray-500 flex items-center gap-1">
+                                            <p className="text-sm text-gray-500 dark:text-gray-400 flex items-center gap-1">
                                                 <Building2 className="w-3 h-3" /> {contact.company}
                                             </p>
                                         )}
@@ -114,7 +114,7 @@ export const ContactsPage: React.FC = () => {
                                         "p-2 rounded-lg transition-all",
                                         contact.followUp
                                             ? "bg-amber-100 text-amber-600 dark:bg-amber-900/30 dark:text-amber-400"
-                                            : "text-gray-300 hover:bg-gray-100 dark:text-gray-600 dark:hover:bg-gray-800"
+                                            : "text-gray-300 hover:bg-gray-100 dark:text-gray-600 dark:hover:bg-gray-700"
                                     )}
                                     title={contact.followUp ? "Följ upp aktiv" : "Markera för uppföljning"}
                                 >
@@ -122,7 +122,7 @@ export const ContactsPage: React.FC = () => {
                                 </button>
                             </div>
 
-                            <div className="space-y-2 text-sm text-gray-600">
+                            <div className="space-y-2 text-sm text-gray-600 dark:text-gray-400">
                                 {contact.email && (
                                     <div className="flex items-center gap-2">
                                         <Mail className="w-4 h-4 text-gray-400" />
