@@ -13,6 +13,12 @@ export const WeeklyGoalTracker: React.FC = () => {
     const { contacts } = useApp();
     const WEEKLY_GOAL = 1;
 
+    // Hardcoded team members
+    const TEAM_MEMBERS = [
+        'adrian@adgs.se',
+        'dejan@adgs.se'
+    ];
+
     const weeklyProgress = useMemo(() => {
         // Get the start of the current week (Monday)
         const now = new Date();
@@ -35,15 +41,15 @@ export const WeeklyGoalTracker: React.FC = () => {
             }
         });
 
-        // Convert to array of user progress
-        const progress: UserProgress[] = [];
-        userCounts.forEach((count, email) => {
-            progress.push({
+        // Create progress for all team members (even if they have 0 contacts)
+        const progress: UserProgress[] = TEAM_MEMBERS.map(email => {
+            const count = userCounts.get(email) || 0;
+            return {
                 email,
                 initial: email[0].toUpperCase(),
                 count,
                 goalMet: count >= WEEKLY_GOAL
-            });
+            };
         });
 
         // Sort by email to maintain consistent order
@@ -63,106 +69,97 @@ export const WeeklyGoalTracker: React.FC = () => {
         <>
             {/* Mobile: Horizontal Scroll Chips */}
             <div className="md:hidden mb-4">
-                <div className="flex items-center gap-2 mb-2">
-                    <span className="text-xs font-semibold text-gray-600 dark:text-gray-400">
+                <div className="flex items-center justify-center gap-2 mb-3">
+                    <span className="text-xs font-bold text-gray-800 dark:text-gray-100 uppercase tracking-wider">
                         V.{weekNumber} Mål:
                     </span>
                 </div>
-                <div className="flex gap-2 overflow-x-auto pb-2 scrollbar-hide">
-                    {weeklyProgress.length > 0 ? (
-                        weeklyProgress.map((user) => (
-                            <div
-                                key={user.email}
-                                className={cn(
-                                    "flex-shrink-0 px-4 py-3 rounded-xl border-2 min-w-[120px] text-center flex flex-col items-center justify-center",
-                                    user.goalMet
-                                        ? "bg-green-50 dark:bg-green-900/20 border-green-200 dark:border-green-800"
-                                        : "bg-amber-50 dark:bg-amber-900/20 border-amber-200 dark:border-amber-800"
-                                )}
-                            >
-                                <div className="flex items-center justify-center gap-2 mb-2 w-full">
-                                    <span className="text-sm font-semibold text-gray-900 dark:text-white capitalize truncate">
-                                        {user.email.split('@')[0]}
-                                    </span>
-                                    <span className="text-lg flex-shrink-0">
-                                        {user.goalMet ? '✅' : '⚠️'}
-                                    </span>
-                                </div>
-                                <div className="text-sm font-bold text-gray-900 dark:text-white">
-                                    {user.count}/{WEEKLY_GOAL}
-                                </div>
+                <div className="grid grid-cols-2 gap-4 pb-2">
+                    {weeklyProgress.map((user) => (
+                        <div
+                            key={user.email}
+                            className={cn(
+                                "flex-shrink-0 px-4 py-3 rounded-xl border-2 min-w-[120px] text-center flex flex-col items-center justify-center",
+                                user.goalMet
+                                    ? "bg-green-50 dark:bg-green-900/20 border-green-200 dark:border-green-800"
+                                    : "bg-amber-50 dark:bg-amber-900/20 border-amber-200 dark:border-amber-800"
+                            )}
+                        >
+                            <div className="flex items-center justify-center gap-2 mb-2 w-full">
+                                <span className="text-sm font-semibold text-gray-900 dark:text-white capitalize truncate">
+                                    {user.email.split('@')[0]}
+                                </span>
+                                <span className="text-lg flex-shrink-0">
+                                    {user.goalMet ? '✅' : '⚠️'}
+                                </span>
                             </div>
-                        ))
-                    ) : (
-                        <div className="text-xs text-gray-400 dark:text-gray-500 italic">
-                            Inga kontakter skapade denna vecka
+                            <div className="text-sm font-bold text-gray-900 dark:text-white">
+                                {user.count}/{WEEKLY_GOAL}
+                            </div>
                         </div>
-                    )}
+                    ))}
                 </div>
             </div>
 
-            {/* Desktop: Sidebar Widget */}
-            <div className="hidden md:block bg-white dark:bg-gray-800 rounded-2xl border border-gray-200 dark:border-gray-700 p-4 shadow-sm">
-                <div className="flex items-center gap-2 mb-4">
-                    <span className="text-2xl">📈</span>
-                    <div>
-                        <h3 className="font-bold text-gray-900 dark:text-white text-sm">Veckans Mål</h3>
-                        <p className="text-xs text-gray-500 dark:text-gray-400">Vecka {weekNumber}</p>
+            {/* Desktop: Separate Cards */}
+            <div className="hidden md:flex md:flex-col md:gap-3">
+                {/* Header Card */}
+                <div className="bg-white dark:bg-gray-800 rounded-2xl border border-gray-200 dark:border-gray-700 p-4 shadow-sm">
+                    <div className="flex items-center gap-2">
+                        <span className="text-2xl">📈</span>
+                        <div>
+                            <h3 className="font-bold text-gray-900 dark:text-white text-sm">Veckans Mål</h3>
+                            <p className="text-xs text-gray-500 dark:text-gray-400">Vecka {weekNumber}</p>
+                        </div>
                     </div>
                 </div>
 
-                <div className="space-y-3">
-                    {weeklyProgress.length > 0 ? (
-                        weeklyProgress.map((user) => (
-                            <div key={user.email} className="space-y-1">
-                                <div className="flex items-center justify-between">
-                                    <div className="flex items-center gap-2">
-                                        <div className="w-6 h-6 rounded-full bg-primary-600 dark:bg-primary-500 text-white flex items-center justify-center text-xs font-bold">
-                                            {user.initial}
-                                        </div>
-                                        <span className="text-sm font-medium text-gray-700 dark:text-gray-300 truncate max-w-[120px]" title={user.email}>
-                                            {user.email.split('@')[0]}
-                                        </span>
-                                    </div>
-                                    <div className="flex items-center gap-1">
-                                        <span className="text-sm font-bold text-gray-900 dark:text-white">
-                                            {user.count}/{WEEKLY_GOAL}
-                                        </span>
-                                        <span className="text-lg">
-                                            {user.goalMet ? '✅' : '⚠️'}
-                                        </span>
-                                    </div>
+                {/* Individual User Cards */}
+                {weeklyProgress.map((user) => (
+                    <div
+                        key={user.email}
+                        className="bg-white dark:bg-gray-800 rounded-2xl border border-gray-200 dark:border-gray-700 p-4 shadow-sm"
+                    >
+                        <div className="flex items-center justify-between mb-2">
+                            <div className="flex items-center gap-2">
+                                <div className="w-6 h-6 rounded-full bg-primary-600 dark:bg-primary-500 text-white flex items-center justify-center text-xs font-bold">
+                                    {user.initial}
                                 </div>
-                                <div className="w-full bg-gray-200 dark:bg-gray-700 rounded-full h-2 overflow-hidden">
-                                    <div
-                                        className={cn(
-                                            "h-full rounded-full transition-all duration-300",
-                                            user.goalMet
-                                                ? "bg-green-500 dark:bg-green-400"
-                                                : "bg-amber-500 dark:bg-amber-400"
-                                        )}
-                                        style={{ width: `${Math.min((user.count / WEEKLY_GOAL) * 100, 100)}%` }}
-                                    />
-                                </div>
-                                {user.goalMet ? (
-                                    <p className="text-xs text-green-600 dark:text-green-400 font-medium">
-                                        MÅL UPPNÅTT!
-                                    </p>
-                                ) : (
-                                    <p className="text-xs text-amber-600 dark:text-amber-400">
-                                        Behöver {WEEKLY_GOAL - user.count} till
-                                    </p>
-                                )}
+                                <span className="text-sm font-medium text-gray-700 dark:text-gray-300 capitalize">
+                                    {user.email.split('@')[0]}
+                                </span>
                             </div>
-                        ))
-                    ) : (
-                        <div className="text-center py-4">
-                            <p className="text-sm text-gray-400 dark:text-gray-500 italic">
-                                Inga kontakter skapade denna vecka
-                            </p>
+                            <div className="flex items-center gap-1">
+                                <span className="text-sm font-bold text-gray-900 dark:text-white">
+                                    {user.count}/{WEEKLY_GOAL}
+                                </span>
+                                <span className="text-lg">
+                                    {user.goalMet ? '✅' : '⚠️'}
+                                </span>
+                            </div>
                         </div>
-                    )}
-                </div>
+                        <div className="w-full bg-gray-200 dark:bg-gray-700 rounded-full h-2 overflow-hidden mb-2">
+                            <div
+                                className={cn(
+                                    "h-full rounded-full transition-all duration-300",
+                                    user.goalMet
+                                        ? "bg-green-500 dark:bg-green-400"
+                                        : "bg-amber-500 dark:bg-amber-400"
+                                )}
+                                style={{ width: `${Math.min((user.count / WEEKLY_GOAL) * 100, 100)}%` }}
+                            />
+                        </div>
+                        {user.goalMet ? (
+                            <p className="text-xs text-green-600 dark:text-green-400 font-medium">
+                                MÅL UPPNÅTT!
+                            </p>
+                        ) : (
+                            <p className="text-xs text-amber-600 dark:text-amber-400">
+                                Behöver {WEEKLY_GOAL - user.count} till
+                            </p>
+                        )}
+                    </div>
+                ))}
             </div>
         </>
     );
