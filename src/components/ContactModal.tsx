@@ -17,13 +17,14 @@ export const ContactModal: React.FC<ContactModalProps> = ({ isOpen, onClose, onS
         email: '',
         phone: '',
         notes: '',
+        followUp: false,
     });
 
     useEffect(() => {
         if (initialData) {
             setFormData(initialData);
         } else {
-            setFormData({ name: '', company: '', email: '', phone: '', notes: '' });
+            setFormData({ name: '', company: '', email: '', phone: '', notes: '', followUp: false });
         }
     }, [initialData, isOpen]);
 
@@ -117,6 +118,20 @@ export const ContactModal: React.FC<ContactModalProps> = ({ isOpen, onClose, onS
                         value={formData.notes || ''}
                         onChange={(e) => setFormData({ ...formData, notes: e.target.value })}
                     />
+                </div>
+
+                <div>
+                    <label className="flex items-center gap-2 cursor-pointer group">
+                        <input
+                            type="checkbox"
+                            className="w-4 h-4 rounded border-gray-300 text-primary-600 focus:ring-primary-500"
+                            checked={formData.followUp || false}
+                            onChange={(e) => setFormData({ ...formData, followUp: e.target.checked })}
+                        />
+                        <span className="text-sm font-medium text-gray-700 dark:text-gray-300 group-hover:text-primary-600 transition-colors">
+                            Markera för uppföljning
+                        </span>
+                    </label>
                 </div>
 
                 <div className="pt-4 flex flex-col gap-3">

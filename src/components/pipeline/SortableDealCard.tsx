@@ -1,9 +1,10 @@
 import React from 'react';
 import { useSortable } from '@dnd-kit/sortable';
 import { CSS } from '@dnd-kit/utilities';
-import { AlertCircle } from 'lucide-react';
+import { AlertCircle, Bell } from 'lucide-react';
 import type { Deal } from '../../types';
 import { cn } from '../../lib/utils';
+import { useApp } from '../../context/AppContext';
 
 interface SortableDealCardProps {
     deal: Deal;
@@ -12,6 +13,7 @@ interface SortableDealCardProps {
 }
 
 export const SortableDealCard: React.FC<SortableDealCardProps> = ({ deal, contactName, onClick }) => {
+    const { updateDeal } = useApp();
     const {
         attributes,
         listeners,
@@ -61,10 +63,29 @@ export const SortableDealCard: React.FC<SortableDealCardProps> = ({ deal, contac
             )}
         >
             <div className="flex justify-between items-start mb-1 md:mb-2">
-                <h4 className="font-semibold text-gray-900 dark:text-white group-hover:text-primary-600 dark:group-hover:text-primary-400 transition-colors line-clamp-1 text-sm md:text-base">{deal.title}</h4>
-                <span className="text-xs font-bold text-gray-900 dark:text-gray-200">
-                    {new Intl.NumberFormat('sv-SE', { style: 'currency', currency: deal.currency || 'SEK', maximumFractionDigits: 0 }).format(deal.value)}
-                </span>
+                <div className="flex-1 mr-2">
+                    <h4 className="font-semibold text-gray-900 dark:text-white group-hover:text-primary-600 dark:group-hover:text-primary-400 transition-colors line-clamp-1 text-sm md:text-base">{deal.title}</h4>
+                </div>
+                <div className="flex items-center gap-2">
+                    <button
+                        onClick={(e) => {
+                            e.stopPropagation();
+                            updateDeal({ ...deal, followUp: !deal.followUp });
+                        }}
+                        className={cn(
+                            "p-1 rounded-md transition-all",
+                            deal.followUp
+                                ? "text-amber-500 bg-amber-50 dark:bg-amber-900/20"
+                                : "text-gray-300 hover:text-gray-400 dark:text-gray-600"
+                        )}
+                        title={deal.followUp ? "Följ upp aktiv" : "Markera för uppföljning"}
+                    >
+                        <Bell className={cn("w-3.5 h-3.5 md:w-4 md:h-4", deal.followUp && "fill-current")} />
+                    </button>
+                    <span className="text-xs font-bold text-gray-900 dark:text-gray-200">
+                        {new Intl.NumberFormat('sv-SE', { style: 'currency', currency: deal.currency || 'SEK', maximumFractionDigits: 0 }).format(deal.value)}
+                    </span>
+                </div>
             </div>
             <p className="text-[10px] md:text-xs text-gray-500 dark:text-gray-400 mb-2 md:mb-3 flex items-center gap-1">
                 <AlertCircle className="w-2.5 h-2.5 md:w-3 md:h-3" />

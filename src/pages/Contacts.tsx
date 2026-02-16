@@ -1,8 +1,9 @@
 import React, { useState } from 'react';
 import { useApp } from '../context/AppContext';
-import { Plus, Search, Mail, Phone, Building2, User } from 'lucide-react';
+import { Plus, Search, Mail, Phone, Building2, User, Bell } from 'lucide-react';
 import { ContactModal } from '../components/ContactModal';
 import type { Contact } from '../types';
+import { cn } from '../lib/utils';
 
 export const ContactsPage: React.FC = () => {
     const { contacts, addContact, updateContact, deleteContact } = useApp();
@@ -104,6 +105,21 @@ export const ContactsPage: React.FC = () => {
                                         )}
                                     </div>
                                 </div>
+                                <button
+                                    onClick={(e) => {
+                                        e.stopPropagation();
+                                        handleUpdate({ ...contact, followUp: !contact.followUp });
+                                    }}
+                                    className={cn(
+                                        "p-2 rounded-lg transition-all",
+                                        contact.followUp
+                                            ? "bg-amber-100 text-amber-600 dark:bg-amber-900/30 dark:text-amber-400"
+                                            : "text-gray-300 hover:bg-gray-100 dark:text-gray-600 dark:hover:bg-gray-800"
+                                    )}
+                                    title={contact.followUp ? "Följ upp aktiv" : "Markera för uppföljning"}
+                                >
+                                    <Bell className={cn("w-5 h-5", contact.followUp && "fill-current")} />
+                                </button>
                             </div>
 
                             <div className="space-y-2 text-sm text-gray-600">
@@ -143,6 +159,6 @@ export const ContactsPage: React.FC = () => {
                 onDelete={deleteContact}
                 initialData={editingContact}
             />
-        </div>
+        </div >
     );
 };

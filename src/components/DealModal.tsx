@@ -28,6 +28,7 @@ export const DealModal: React.FC<DealModalProps> = ({ isOpen, onClose, onSubmit,
         stage: 'potential',
         expectedCloseDate: '',
         notes: '',
+        followUp: false,
     });
 
     useEffect(() => {
@@ -42,6 +43,7 @@ export const DealModal: React.FC<DealModalProps> = ({ isOpen, onClose, onSubmit,
                 stage: 'potential',
                 expectedCloseDate: new Date().toISOString().split('T')[0], // Today as default
                 notes: '',
+                followUp: false,
             });
         }
     }, [initialData, isOpen]);
@@ -161,6 +163,20 @@ export const DealModal: React.FC<DealModalProps> = ({ isOpen, onClose, onSubmit,
                         value={formData.notes || ''}
                         onChange={(e) => setFormData({ ...formData, notes: e.target.value })}
                     />
+                </div>
+
+                <div>
+                    <label className="flex items-center gap-2 cursor-pointer group">
+                        <input
+                            type="checkbox"
+                            className="w-4 h-4 rounded border-gray-300 text-primary-600 focus:ring-primary-500"
+                            checked={formData.followUp || false}
+                            onChange={(e) => setFormData({ ...formData, followUp: e.target.checked })}
+                        />
+                        <span className="text-sm font-medium text-gray-700 dark:text-gray-300 group-hover:text-primary-600 transition-colors">
+                            Markera för uppföljning
+                        </span>
+                    </label>
                 </div>
 
                 <div className="pt-4 flex flex-col gap-3">

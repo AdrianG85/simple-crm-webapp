@@ -10,6 +10,7 @@ export interface Contact {
     createdAt: string;
     updatedAt: string;
     createdBy?: string;
+    followUp?: boolean;
 }
 
 export interface Deal {
@@ -24,4 +25,5 @@ export interface Deal {
     createdAt: string;
     updatedAt: string;
     createdBy?: string;
+    followUp?: boolean;
 }

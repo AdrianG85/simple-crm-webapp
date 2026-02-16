@@ -1,7 +1,7 @@
 import React, { useState } from 'react';
 import { useApp } from '../context/AppContext';
 import { useTheme } from '../context/ThemeContext';
-import { Coins, Briefcase, CheckCircle, TrendingUp, Moon, Sun, LogOut } from 'lucide-react';
+import { Coins, Briefcase, CheckCircle, TrendingUp, Moon, Sun, LogOut, Bell } from 'lucide-react';
 import { useAuth } from '../context/AuthContext';
 import { cn } from '../lib/utils';
 import { DealModal } from '../components/DealModal';
@@ -181,7 +181,12 @@ export const Dashboard: React.FC = () => {
                                                 {deal.title.substring(0, 1).toUpperCase()}
                                             </div>
                                             <div>
-                                                <h4 className="font-semibold text-gray-900 dark:text-white text-sm group-hover:text-primary-600 dark:group-hover:text-primary-400 transition-colors">{deal.title}</h4>
+                                                <div className="flex items-center gap-2">
+                                                    <h4 className="font-semibold text-gray-900 dark:text-white text-sm group-hover:text-primary-600 dark:group-hover:text-primary-400 transition-colors">{deal.title}</h4>
+                                                    {deal.followUp && (
+                                                        <Bell className="w-3 h-3 text-amber-500 fill-current" />
+                                                    )}
+                                                </div>
                                                 <p className="text-xs text-gray-500 dark:text-gray-400">Kund: {contact?.name || 'Okänd'}</p>
                                             </div>
                                         </div>
