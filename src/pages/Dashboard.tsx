@@ -1,17 +1,20 @@
 import React, { useState } from 'react';
 import { useApp } from '../context/AppContext';
 import { useTheme } from '../context/ThemeContext';
-import { CheckCircle, TrendingUp, Moon, Sun, LogOut, Bell } from 'lucide-react';
+import { CheckCircle, TrendingUp, Moon, Sun, LogOut, Bell, Eye, EyeOff } from 'lucide-react';
 import { useAuth } from '../context/AuthContext';
+import { useDemo } from '../context/DemoContext';
 import { cn } from '../lib/utils';
 import { DealModal } from '../components/DealModal';
 import { GoalsOverlay } from '../components/GoalsOverlay';
+import { Redacted } from '../components/ui/Redacted';
 import type { Deal } from '../types';
 
 export const Dashboard: React.FC = () => {
     const { deals, contacts, loading, updateDeal, deleteDeal } = useApp();
     const { theme, toggleTheme } = useTheme();
     const { signOut, user } = useAuth();
+    const { isDemoMode, toggleDemoMode } = useDemo();
 
     const [isModalOpen, setIsModalOpen] = useState(false);
     const [editingDeal, setEditingDeal] = useState<Deal | null>(null);
@@ -107,13 +110,27 @@ export const Dashboard: React.FC = () => {
                     <div>
                         <h1 className="text-2xl font-bold text-gray-900 dark:text-white">Översikt</h1>
                         <p className="text-gray-500 dark:text-gray-400">
-                            <span className="capitalize">Välkommen tillbaka - {user?.email?.split('@')[0] || 'Användare'}</span>
+                            <span className="capitalize">Välkommen tillbaka - <Redacted type="name">{user?.email?.split('@')[0] || 'Användare'}</Redacted></span>
                         </p>
                     </div>
                 </div>
 
                 {/* Mobile Controls */}
                 <div className="flex items-center gap-2 md:hidden">
+                    {/* Demo toggle */}
+                    <button
+                        onClick={toggleDemoMode}
+                        className={cn(
+                            "p-2 rounded-lg transition-colors",
+                            isDemoMode
+                                ? "text-red-500 dark:text-red-400 bg-red-50 dark:bg-red-900/20"
+                                : "text-gray-500 dark:text-gray-400 hover:bg-gray-100 dark:hover:bg-gray-800"
+                        )}
+                        aria-label="Demo-läge"
+                        title="Demo-läge"
+                    >
+                        {isDemoMode ? <EyeOff className="w-5 h-5" /> : <Eye className="w-5 h-5" />}
+                    </button>
                     <button
                         onClick={toggleTheme}
                         className="p-2 rounded-lg text-gray-900 dark:text-white hover:bg-gray-100 dark:hover:bg-gray-800 transition-colors"
@@ -156,7 +173,7 @@ export const Dashboard: React.FC = () => {
                     </div>
                     <div className="z-10">
                         <h2 className="text-3xl font-bold text-primary-700 dark:text-primary-400">
-                            {new Intl.NumberFormat('sv-SE', { style: 'currency', currency: 'SEK', maximumFractionDigits: 0 }).format(totalPipelineValue)}
+                            <Redacted>{new Intl.NumberFormat('sv-SE', { style: 'currency', currency: 'SEK', maximumFractionDigits: 0 }).format(totalPipelineValue)}</Redacted>
                         </h2>
                         <p className="text-xs text-amber-500 dark:text-amber-400 flex items-center mt-1">
                             <TrendingUp className="w-3 h-3 mr-1" /> Prognoserat värde
@@ -182,7 +199,7 @@ export const Dashboard: React.FC = () => {
                     </div>
                     <div>
                         <h2 className="text-3xl font-bold text-blue-600 dark:text-blue-400">
-                            {new Intl.NumberFormat('sv-SE', { style: 'currency', currency: 'SEK', maximumFractionDigits: 0 }).format(followUpValue)}
+                            <Redacted>{new Intl.NumberFormat('sv-SE', { style: 'currency', currency: 'SEK', maximumFractionDigits: 0 }).format(followUpValue)}</Redacted>
                         </h2>
                         <p className="text-xs text-blue-500 dark:text-blue-400 flex items-center mt-1">
                             <Bell className="w-3 h-3 mr-1" /> Affärer med påminnelse
@@ -209,7 +226,7 @@ export const Dashboard: React.FC = () => {
                     </div>
                     <div className="z-10">
                         <h2 className="text-3xl font-bold text-green-600 dark:text-green-400">
-                            {new Intl.NumberFormat('sv-SE', { style: 'currency', currency: 'SEK', maximumFractionDigits: 0 }).format(wonTotalValue)}
+                            <Redacted>{new Intl.NumberFormat('sv-SE', { style: 'currency', currency: 'SEK', maximumFractionDigits: 0 }).format(wonTotalValue)}</Redacted>
                         </h2>
                         <p className="text-xs text-green-600 dark:text-green-400 flex items-center mt-1">
                             <CheckCircle className="w-3 h-3 mr-1" /> Värde
@@ -254,17 +271,19 @@ export const Dashboard: React.FC = () => {
                                             </div>
                                             <div>
                                                 <div className="flex items-center gap-2">
-                                                    <h4 className="font-semibold text-gray-900 dark:text-white text-sm group-hover:text-primary-600 dark:group-hover:text-primary-400 transition-colors">{deal.title}</h4>
+                                                    <h4 className="font-semibold text-gray-900 dark:text-white text-sm group-hover:text-primary-600 dark:group-hover:text-primary-400 transition-colors">
+                                                        <Redacted type="name">{deal.title}</Redacted>
+                                                    </h4>
                                                     {deal.followUp && (
                                                         <Bell className="w-3 h-3 text-amber-500 fill-current" />
                                                     )}
                                                 </div>
-                                                <p className="text-xs text-gray-500 dark:text-gray-400">Kund: {contact?.name || 'Okänd'}</p>
+                                                <p className="text-xs text-gray-500 dark:text-gray-400">Kund: <Redacted type="name">{contact?.name || 'Okänd'}</Redacted></p>
                                             </div>
                                         </div>
                                         <div className="text-right">
                                             <span className="font-bold text-gray-900 dark:text-white block">
-                                                {new Intl.NumberFormat('sv-SE', { style: 'currency', currency: 'SEK', maximumFractionDigits: 0 }).format(deal.value)}
+                                                <Redacted>{new Intl.NumberFormat('sv-SE', { style: 'currency', currency: 'SEK', maximumFractionDigits: 0 }).format(deal.value)}</Redacted>
                                             </span>
                                             <span className={cn(
                                                 "text-xs capitalize px-2 py-0.5 rounded-full inline-block mt-1",

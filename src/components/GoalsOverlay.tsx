@@ -2,6 +2,8 @@ import React, { useEffect } from 'react';
 import { createPortal } from 'react-dom';
 import { X, Trophy, CheckCircle2, Star } from 'lucide-react';
 import { useApp } from '../context/AppContext';
+import { useDemo } from '../context/DemoContext';
+import { Redacted } from './ui/Redacted';
 import { cn } from '../lib/utils';
 
 interface Goal {
@@ -36,12 +38,13 @@ interface GoalsOverlayProps {
 
 export const GoalsOverlay: React.FC<GoalsOverlayProps> = ({ isOpen, onClose }) => {
     const { deals } = useApp();
+    const { isDemoMode } = useDemo();
 
     const wonTotalValue = deals
         .filter(d => d.stage === 'won')
         .reduce((sum, deal) => sum + deal.value, 0);
 
-    const nextGoalIndex = GOALS.findIndex(g => wonTotalValue < g.target);
+    const nextGoalIndex = isDemoMode ? 0 : GOALS.findIndex(g => wonTotalValue < g.target);
 
     useEffect(() => {
         if (isOpen) {
@@ -74,7 +77,7 @@ export const GoalsOverlay: React.FC<GoalsOverlayProps> = ({ isOpen, onClose }) =
                                 <Trophy className="w-5 h-5 text-yellow-500" />
                                 Företagsmål
                             </h2>
-                            <p className="text-xs text-gray-500 dark:text-gray-400">Vunna affärer: <span className="font-semibold text-green-600 dark:text-green-400">{formatSEK(wonTotalValue)}</span></p>
+                            <p className="text-xs text-gray-500 dark:text-gray-400">Vunna affärer: <span className="font-semibold text-green-600 dark:text-green-400"><Redacted>{formatSEK(wonTotalValue)}</Redacted></span></p>
                         </div>
                     </div>
                     <button
@@ -88,10 +91,10 @@ export const GoalsOverlay: React.FC<GoalsOverlayProps> = ({ isOpen, onClose }) =
                 {/* Goals List */}
                 <div className="overflow-y-auto flex-1 p-4 space-y-3">
                     {GOALS.map((goal, index) => {
-                        const isCompleted = wonTotalValue >= goal.target;
+                        const isCompleted = !isDemoMode && wonTotalValue >= goal.target;
                         const isNext = index === nextGoalIndex;
                         const prevTarget = index === 0 ? 0 : GOALS[index - 1].target;
-                        const progress = isCompleted
+                        const progress = isDemoMode ? 0 : isCompleted
                             ? 100
                             : Math.min(100, Math.max(0, ((wonTotalValue - prevTarget) / (goal.target - prevTarget)) * 100));
 
@@ -123,25 +126,25 @@ export const GoalsOverlay: React.FC<GoalsOverlayProps> = ({ isOpen, onClose }) =
                                                 isNext ? "text-yellow-700 dark:text-yellow-400" :
                                                     "text-gray-700 dark:text-gray-300"
                                         )}>
-                                            {formatSEK(goal.target)}
+                                            <Redacted>{formatSEK(goal.target)}</Redacted>
                                         </span>
                                     </div>
                                     <span className="text-xs text-gray-500 dark:text-gray-400 text-right flex-shrink-0">
-                                        Est. kostnad: <span className="font-semibold">{formatSEK(goal.estimatedCost)}</span>
+                                        Est. kostnad: <span className="font-semibold"><Redacted>{formatSEK(goal.estimatedCost)}</Redacted></span>
                                     </span>
                                 </div>
 
                                 {/* Rewards */}
                                 <div className="text-sm text-gray-700 dark:text-gray-300 mb-3 space-y-1">
                                     {goal.rewards.map((r, i) => (
-                                        <p key={i} className="leading-snug">🎁 {r}</p>
+                                        <p key={i} className="leading-snug">🎁 <Redacted type="text">{r}</Redacted></p>
                                     ))}
                                 </div>
 
                                 {/* Progress bar */}
                                 <div className="space-y-1">
                                     <div className="flex justify-between text-[10px] text-gray-500 dark:text-gray-400">
-                                        <span>{isCompleted ? 'Uppnått! 🎉' : isNext ? `${formatSEK(goal.target - wonTotalValue)} kvar` : 'Ej påbörjat'}</span>
+                                        <span>{isCompleted ? 'Uppnått! 🎉' : isNext && !isDemoMode ? `${formatSEK(goal.target - wonTotalValue)} kvar` : 'Ej påbörjat'}</span>
                                         <span>{Math.round(progress)}%</span>
                                     </div>
                                     <div className="h-2 bg-gray-200 dark:bg-gray-700 rounded-full overflow-hidden">

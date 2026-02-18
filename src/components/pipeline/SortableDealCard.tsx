@@ -5,6 +5,7 @@ import { AlertCircle, Bell, GripVertical } from 'lucide-react';
 import type { Deal } from '../../types';
 import { cn } from '../../lib/utils';
 import { useApp } from '../../context/AppContext';
+import { Redacted } from '../ui/Redacted';
 
 interface SortableDealCardProps {
     deal: Deal;
@@ -76,7 +77,9 @@ export const SortableDealCard: React.FC<SortableDealCardProps> = ({ deal, contac
 
             <div className={cn("flex justify-between items-start mb-1 md:mb-2", isMobile && "ml-10")}>
                 <div className="flex-1 mr-2">
-                    <h4 className="font-semibold text-gray-900 dark:text-white group-hover:text-primary-600 dark:group-hover:text-primary-400 transition-colors line-clamp-1 text-sm md:text-base">{deal.title}</h4>
+                    <h4 className="font-semibold text-gray-900 dark:text-white group-hover:text-primary-600 dark:group-hover:text-primary-400 transition-colors line-clamp-1 text-sm md:text-base">
+                        <Redacted type="name">{deal.title}</Redacted>
+                    </h4>
                 </div>
                 <div className="flex items-center gap-2">
                     <button
@@ -95,7 +98,7 @@ export const SortableDealCard: React.FC<SortableDealCardProps> = ({ deal, contac
                         <Bell className={cn("w-3.5 h-3.5 md:w-4 md:h-4", deal.followUp && "fill-current")} />
                     </button>
                     <span className="text-xs font-bold text-gray-900 dark:text-gray-200">
-                        {new Intl.NumberFormat('sv-SE', { style: 'currency', currency: deal.currency || 'SEK', maximumFractionDigits: 0 }).format(deal.value)}
+                        <Redacted>{new Intl.NumberFormat('sv-SE', { style: 'currency', currency: deal.currency || 'SEK', maximumFractionDigits: 0 }).format(deal.value)}</Redacted>
                     </span>
                 </div>
             </div>
@@ -106,7 +109,7 @@ export const SortableDealCard: React.FC<SortableDealCardProps> = ({ deal, contac
 
             <div className={cn("mt-1 md:mt-2 pt-1 md:pt-2 border-t border-gray-50 dark:border-gray-600 flex justify-between items-center", isMobile && "ml-10")}>
                 <span className="text-[10px] md:text-xs text-gray-400 dark:text-gray-500 truncate">
-                    Kund: {contactName || 'Okänd'}
+                    Kund: <Redacted type="name">{contactName || 'Okänd'}</Redacted>
                 </span>
                 {deal.createdBy && (
                     <div

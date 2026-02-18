@@ -2,6 +2,7 @@ import React, { useState } from 'react';
 import { useApp } from '../context/AppContext';
 import { Plus, Search, Mail, Phone, Building2, User, Bell } from 'lucide-react';
 import { ContactModal } from '../components/ContactModal';
+import { Redacted } from '../components/ui/Redacted';
 import type { Contact } from '../types';
 import { cn } from '../lib/utils';
 
@@ -97,10 +98,12 @@ export const ContactsPage: React.FC = () => {
                                         )}
                                     </div>
                                     <div>
-                                        <h3 className="font-bold text-gray-900 dark:text-white group-hover:text-primary-600 dark:group-hover:text-primary-400 transition-colors">{contact.name}</h3>
+                                        <h3 className="font-bold text-gray-900 dark:text-white group-hover:text-primary-600 dark:group-hover:text-primary-400 transition-colors">
+                                            <Redacted type="name">{contact.name}</Redacted>
+                                        </h3>
                                         {contact.company && (
                                             <p className="text-sm text-gray-500 dark:text-gray-400 flex items-center gap-1">
-                                                <Building2 className="w-3 h-3" /> {contact.company}
+                                                <Building2 className="w-3 h-3" /> <Redacted type="name">{contact.company}</Redacted>
                                             </p>
                                         )}
                                     </div>
@@ -126,19 +129,19 @@ export const ContactsPage: React.FC = () => {
                                 {contact.email && (
                                     <div className="flex items-center gap-2">
                                         <Mail className="w-4 h-4 text-gray-400" />
-                                        <span>{contact.email}</span>
+                                        <span><Redacted type="name">{contact.email}</Redacted></span>
                                     </div>
                                 )}
                                 {contact.phone && (
                                     <div className="flex items-center gap-2">
                                         <Phone className="w-4 h-4 text-gray-400" />
-                                        <span>{contact.phone}</span>
+                                        <span><Redacted type="name">{contact.phone}</Redacted></span>
                                     </div>
                                 )}
                                 {contact.notes && (
                                     <div className="mt-3 pt-3 border-t border-gray-50 dark:border-gray-700 flex flex-col gap-1">
                                         <span className="text-[10px] font-bold text-gray-400 dark:text-gray-500 uppercase tracking-wider">Anteckningar</span>
-                                        <p className="text-xs text-gray-500 dark:text-gray-400 line-clamp-2 italic">"{contact.notes}"</p>
+                                        <p className="text-xs text-gray-500 dark:text-gray-400 line-clamp-2 italic"><Redacted type="text">{contact.notes}</Redacted></p>
                                     </div>
                                 )}
                             </div>

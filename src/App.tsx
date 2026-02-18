@@ -2,6 +2,7 @@ import { BrowserRouter, Routes, Route, Navigate } from 'react-router-dom';
 import { AppProvider } from './context/AppContext';
 import { ThemeProvider } from './context/ThemeContext';
 import { AuthProvider, useAuth } from './context/AuthContext';
+import { DemoProvider } from './context/DemoContext';
 import { Layout } from './components/Layout';
 import { Dashboard } from './pages/Dashboard';
 import { ContactsPage } from './pages/Contacts';
@@ -31,20 +32,22 @@ function App() {
   return (
     <ThemeProvider>
       <AuthProvider>
-        <AppProvider>
-          <BrowserRouter>
-            <Routes>
-              <Route path="/login" element={<LoginPage />} />
-              <Route path="/" element={<ProtectedRoute><Layout /></ProtectedRoute>}>
-                <Route index element={<Dashboard />} />
-                <Route path="contacts" element={<ContactsPage />} />
-                <Route path="pipeline" element={<PipelinePage />} />
-                <Route path="calendar" element={<CalendarPage />} />
-              </Route>
-              <Route path="*" element={<Navigate to="/" replace />} />
-            </Routes>
-          </BrowserRouter>
-        </AppProvider>
+        <DemoProvider>
+          <AppProvider>
+            <BrowserRouter>
+              <Routes>
+                <Route path="/login" element={<LoginPage />} />
+                <Route path="/" element={<ProtectedRoute><Layout /></ProtectedRoute>}>
+                  <Route index element={<Dashboard />} />
+                  <Route path="contacts" element={<ContactsPage />} />
+                  <Route path="pipeline" element={<PipelinePage />} />
+                  <Route path="calendar" element={<CalendarPage />} />
+                </Route>
+                <Route path="*" element={<Navigate to="/" replace />} />
+              </Routes>
+            </BrowserRouter>
+          </AppProvider>
+        </DemoProvider>
       </AuthProvider>
     </ThemeProvider>
   );
