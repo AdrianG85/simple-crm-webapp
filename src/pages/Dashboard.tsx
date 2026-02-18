@@ -5,6 +5,7 @@ import { CheckCircle, TrendingUp, Moon, Sun, LogOut, Bell } from 'lucide-react';
 import { useAuth } from '../context/AuthContext';
 import { cn } from '../lib/utils';
 import { DealModal } from '../components/DealModal';
+import { GoalsOverlay } from '../components/GoalsOverlay';
 import type { Deal } from '../types';
 
 export const Dashboard: React.FC = () => {
@@ -15,6 +16,8 @@ export const Dashboard: React.FC = () => {
     const [isModalOpen, setIsModalOpen] = useState(false);
     const [editingDeal, setEditingDeal] = useState<Deal | null>(null);
     const [lastTap, setLastTap] = useState<number>(0);
+    const [goalsOpen, setGoalsOpen] = useState(false);
+    const [activeFilter, setActiveFilter] = useState<'all' | 'pipeline' | 'followup' | 'won'>('all');
 
     if (loading) {
         return (
@@ -37,11 +40,21 @@ export const Dashboard: React.FC = () => {
         .filter(d => d.stage === 'won')
         .reduce((sum, deal) => sum + deal.value, 0);
 
-    // Sort deals by value for Top Projects (descending)
-    const topProjects = [...deals]
-        .filter(d => d.stage !== 'lost')
+    // Sort deals by value for Top Projects (descending), filtered by active card
+    const filteredDeals = [...deals]
+        .filter(d => {
+            if (activeFilter === 'pipeline') return d.stage === 'potential' || d.stage === 'placed';
+            if (activeFilter === 'followup') return d.followUp && d.stage !== 'won' && d.stage !== 'lost';
+            if (activeFilter === 'won') return d.stage === 'won';
+            return d.stage !== 'lost'; // 'all'
+        })
         .sort((a, b) => b.value - a.value)
-        .slice(0, 5);
+        .slice(0, activeFilter === 'all' ? 5 : undefined);
+
+    const filterLabel = activeFilter === 'pipeline' ? 'Möjlig försäljning'
+        : activeFilter === 'followup' ? 'Uppföljningar'
+            : activeFilter === 'won' ? 'Vunna Affärer'
+                : 'Största Projektvärden';
 
     const handleEditDeal = (deal: Deal) => {
         setEditingDeal(deal);
@@ -76,14 +89,21 @@ export const Dashboard: React.FC = () => {
 
     return (
         <div className="space-y-6">
+            <GoalsOverlay isOpen={goalsOpen} onClose={() => setGoalsOpen(false)} />
             <header className="mb-6 flex items-start justify-between">
                 <div className="flex items-center gap-3">
                     {/* Mobile-Only Logo */}
-                    <img
-                        src="/adgs-logo.png"
-                        alt="ADGS Logo"
-                        className="md:hidden w-12 h-12 rounded-xl shadow-md border border-gray-100 dark:border-gray-600 object-cover"
-                    />
+                    <button
+                        onClick={() => setGoalsOpen(true)}
+                        className="md:hidden focus:outline-none active:scale-95 transition-transform"
+                        title="Visa företagsmål"
+                    >
+                        <img
+                            src="/adgs-logo.png"
+                            alt="ADGS Logo"
+                            className="w-12 h-12 rounded-xl shadow-md border border-gray-100 dark:border-gray-600 object-cover"
+                        />
+                    </button>
                     <div>
                         <h1 className="text-2xl font-bold text-gray-900 dark:text-white">Översikt</h1>
                         <p className="text-gray-500 dark:text-gray-400">
@@ -119,7 +139,15 @@ export const Dashboard: React.FC = () => {
             {/* Key Metrics Grid */}
             <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
                 {/* Total Value */}
-                <div className="bg-white dark:bg-gray-800 p-6 rounded-2xl shadow-sm border border-gray-100 dark:border-gray-700 flex flex-col justify-between h-32 relative overflow-hidden transition-colors">
+                <button
+                    onClick={() => setActiveFilter(f => f === 'pipeline' ? 'all' : 'pipeline')}
+                    className={cn(
+                        "bg-white dark:bg-gray-800 p-6 rounded-2xl shadow-sm border flex flex-col justify-between h-32 relative overflow-hidden transition-all text-left w-full cursor-pointer hover:shadow-md active:scale-[0.98]",
+                        activeFilter === 'pipeline'
+                            ? "border-amber-400 dark:border-amber-500 ring-2 ring-amber-300/50"
+                            : "border-gray-100 dark:border-gray-700"
+                    )}
+                >
                     <div className="flex items-center justify-between">
                         <span className="text-gray-500 dark:text-gray-400 font-medium text-sm">Möjlig försäljning</span>
                         <div className="bg-amber-50 dark:bg-amber-900/30 text-amber-700 dark:text-amber-300 px-2 py-1 rounded-lg text-xs font-medium">
@@ -134,10 +162,18 @@ export const Dashboard: React.FC = () => {
                             <TrendingUp className="w-3 h-3 mr-1" /> Prognoserat värde
                         </p>
                     </div>
-                </div>
+                </button>
 
                 {/* Follow-ups */}
-                <div className="bg-white dark:bg-gray-800 p-6 rounded-2xl shadow-sm border border-gray-100 dark:border-gray-700 flex flex-col justify-between h-32 transition-colors">
+                <button
+                    onClick={() => setActiveFilter(f => f === 'followup' ? 'all' : 'followup')}
+                    className={cn(
+                        "bg-white dark:bg-gray-800 p-6 rounded-2xl shadow-sm border flex flex-col justify-between h-32 transition-all text-left w-full cursor-pointer hover:shadow-md active:scale-[0.98]",
+                        activeFilter === 'followup'
+                            ? "border-blue-400 dark:border-blue-500 ring-2 ring-blue-300/50"
+                            : "border-gray-100 dark:border-gray-700"
+                    )}
+                >
                     <div className="flex items-center justify-between">
                         <span className="text-gray-500 dark:text-gray-400 font-medium text-sm">Uppföljningar</span>
                         <div className="bg-blue-50 dark:bg-blue-900/30 text-blue-700 dark:text-blue-300 px-2 py-1 rounded-lg text-xs font-medium">
@@ -152,10 +188,18 @@ export const Dashboard: React.FC = () => {
                             <Bell className="w-3 h-3 mr-1" /> Affärer med påminnelse
                         </p>
                     </div>
-                </div>
+                </button>
 
                 {/* Won Cases */}
-                <div className="bg-white dark:bg-gray-800 p-6 rounded-2xl shadow-sm border border-gray-100 dark:border-gray-700 flex flex-col justify-between h-32 relative overflow-hidden transition-colors">
+                <button
+                    onClick={() => setActiveFilter(f => f === 'won' ? 'all' : 'won')}
+                    className={cn(
+                        "bg-white dark:bg-gray-800 p-6 rounded-2xl shadow-sm border flex flex-col justify-between h-32 relative overflow-hidden transition-all text-left w-full cursor-pointer hover:shadow-md active:scale-[0.98]",
+                        activeFilter === 'won'
+                            ? "border-green-400 dark:border-green-500 ring-2 ring-green-300/50"
+                            : "border-gray-100 dark:border-gray-700"
+                    )}
+                >
                     <div className="flex items-center justify-between">
                         <span className="text-gray-500 dark:text-gray-400 font-medium text-sm">Vunna Affärer</span>
                         <div className="bg-green-50 dark:bg-green-900/30 text-green-700 dark:text-green-300 px-2 py-1 rounded-lg text-xs font-medium">
@@ -171,19 +215,26 @@ export const Dashboard: React.FC = () => {
                             <CheckCircle className="w-3 h-3 mr-1" /> Värde
                         </p>
                     </div>
-                </div>
+                </button>
             </div>
 
             {/* Top Projects List */}
             <div className="bg-white dark:bg-gray-800 rounded-2xl shadow-sm border border-gray-100 dark:border-gray-700 overflow-hidden transition-colors">
                 <div className="p-6 border-b border-gray-100 dark:border-gray-700 flex justify-between items-center">
-                    <h3 className="font-bold text-gray-900 dark:text-white">Största Projektvärden</h3>
-                    <button className="text-sm text-primary-600 dark:text-primary-400 hover:text-primary-700 dark:hover:text-primary-300 font-medium focus:outline-none">Se alla</button>
+                    <h3 className="font-bold text-gray-900 dark:text-white">{filterLabel}</h3>
+                    {activeFilter !== 'all' && (
+                        <button
+                            onClick={() => setActiveFilter('all')}
+                            className="text-sm text-primary-600 dark:text-primary-400 hover:text-primary-700 dark:hover:text-primary-300 font-medium focus:outline-none"
+                        >
+                            Se alla
+                        </button>
+                    )}
                 </div>
                 <div>
-                    {topProjects.length > 0 ? (
+                    {filteredDeals.length > 0 ? (
                         <div className="divide-y divide-gray-50 dark:divide-gray-700">
-                            {topProjects.map((deal) => {
+                            {filteredDeals.map((deal) => {
                                 const contact = contacts.find(c => c.id === deal.contactId);
                                 return (
                                     <div
@@ -247,6 +298,6 @@ export const Dashboard: React.FC = () => {
                 onDelete={handleDelete}
                 initialData={editingDeal}
             />
-        </div>
+        </div >
     );
 };
