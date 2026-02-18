@@ -1,7 +1,7 @@
 import React, { useState } from 'react';
 import { useApp } from '../context/AppContext';
 import { useTheme } from '../context/ThemeContext';
-import { Coins, Briefcase, CheckCircle, TrendingUp, Moon, Sun, LogOut, Bell } from 'lucide-react';
+import { CheckCircle, TrendingUp, Moon, Sun, LogOut, Bell } from 'lucide-react';
 import { useAuth } from '../context/AuthContext';
 import { cn } from '../lib/utils';
 import { DealModal } from '../components/DealModal';
@@ -26,11 +26,16 @@ export const Dashboard: React.FC = () => {
 
     // Metrics Calculations
     const totalPipelineValue = deals
-        .filter(d => d.stage !== 'lost')
+        .filter(d => d.stage === 'potential' || d.stage === 'placed')
         .reduce((sum, deal) => sum + deal.value, 0);
 
-    const activeCasesCount = deals.filter(d => d.stage !== 'won' && d.stage !== 'lost').length;
+    const followUpDeals = deals.filter(d => d.followUp && d.stage !== 'won' && d.stage !== 'lost');
+    const followUpCount = followUpDeals.length;
+    const followUpValue = followUpDeals.reduce((sum, deal) => sum + deal.value, 0);
     const wonCasesCount = deals.filter(d => d.stage === 'won').length;
+    const wonTotalValue = deals
+        .filter(d => d.stage === 'won')
+        .reduce((sum, deal) => sum + deal.value, 0);
 
     // Sort deals by value for Top Projects (descending)
     const topProjects = [...deals]
@@ -115,40 +120,56 @@ export const Dashboard: React.FC = () => {
             <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
                 {/* Total Value */}
                 <div className="bg-white dark:bg-gray-800 p-6 rounded-2xl shadow-sm border border-gray-100 dark:border-gray-700 flex flex-col justify-between h-32 relative overflow-hidden transition-colors">
-                    <div className="absolute right-0 top-0 p-4 opacity-5 dark:opacity-10">
-                        <Coins className="w-24 h-24 text-gray-900 dark:text-white" />
+                    <div className="flex items-center justify-between">
+                        <span className="text-gray-500 dark:text-gray-400 font-medium text-sm">Möjlig försäljning</span>
+                        <div className="bg-amber-50 dark:bg-amber-900/30 text-amber-700 dark:text-amber-300 px-2 py-1 rounded-lg text-xs font-medium">
+                            {deals.filter(d => d.stage === 'potential' || d.stage === 'placed').length} st
+                        </div>
                     </div>
-                    <span className="text-gray-500 dark:text-gray-400 font-medium text-sm z-10">Total försäljning</span>
                     <div className="z-10">
                         <h2 className="text-3xl font-bold text-primary-700 dark:text-primary-400">
                             {new Intl.NumberFormat('sv-SE', { style: 'currency', currency: 'SEK', maximumFractionDigits: 0 }).format(totalPipelineValue)}
                         </h2>
-                        <p className="text-xs text-green-600 dark:text-green-400 flex items-center mt-1">
-                            <TrendingUp className="w-3 h-3 mr-1" /> Nuvarande värde
+                        <p className="text-xs text-amber-500 dark:text-amber-400 flex items-center mt-1">
+                            <TrendingUp className="w-3 h-3 mr-1" /> Prognoserat värde
                         </p>
                     </div>
                 </div>
 
-                {/* Active Cases */}
+                {/* Follow-ups */}
                 <div className="bg-white dark:bg-gray-800 p-6 rounded-2xl shadow-sm border border-gray-100 dark:border-gray-700 flex flex-col justify-between h-32 transition-colors">
-                    <span className="text-gray-500 dark:text-gray-400 font-medium text-sm">Aktiva Affärer</span>
-                    <div className="flex items-end justify-between">
-                        <h2 className="text-3xl font-bold text-gray-900 dark:text-white">{activeCasesCount}</h2>
+                    <div className="flex items-center justify-between">
+                        <span className="text-gray-500 dark:text-gray-400 font-medium text-sm">Uppföljningar</span>
                         <div className="bg-blue-50 dark:bg-blue-900/30 text-blue-700 dark:text-blue-300 px-2 py-1 rounded-lg text-xs font-medium">
-                            Pågående
+                            {followUpCount} st
                         </div>
+                    </div>
+                    <div>
+                        <h2 className="text-3xl font-bold text-blue-600 dark:text-blue-400">
+                            {new Intl.NumberFormat('sv-SE', { style: 'currency', currency: 'SEK', maximumFractionDigits: 0 }).format(followUpValue)}
+                        </h2>
+                        <p className="text-xs text-blue-500 dark:text-blue-400 flex items-center mt-1">
+                            <Bell className="w-3 h-3 mr-1" /> Affärer med påminnelse
+                        </p>
                     </div>
                 </div>
 
                 {/* Won Cases */}
-                <div className="bg-white dark:bg-gray-800 p-6 rounded-2xl shadow-sm border border-gray-100 dark:border-gray-700 flex flex-col justify-between h-32 transition-colors">
-                    <span className="text-gray-500 dark:text-gray-400 font-medium text-sm">Vunna Affärer</span>
-                    <div className="flex items-end justify-between">
-                        <h2 className="text-3xl font-bold text-gray-900 dark:text-white">{wonCasesCount}</h2>
+                <div className="bg-white dark:bg-gray-800 p-6 rounded-2xl shadow-sm border border-gray-100 dark:border-gray-700 flex flex-col justify-between h-32 relative overflow-hidden transition-colors">
+                    <div className="flex items-center justify-between">
+                        <span className="text-gray-500 dark:text-gray-400 font-medium text-sm">Vunna Affärer</span>
                         <div className="bg-green-50 dark:bg-green-900/30 text-green-700 dark:text-green-300 px-2 py-1 rounded-lg text-xs font-medium">
                             <CheckCircle className="w-3 h-3 inline mr-1" />
-                            Klart
+                            {wonCasesCount} st
                         </div>
+                    </div>
+                    <div className="z-10">
+                        <h2 className="text-3xl font-bold text-green-600 dark:text-green-400">
+                            {new Intl.NumberFormat('sv-SE', { style: 'currency', currency: 'SEK', maximumFractionDigits: 0 }).format(wonTotalValue)}
+                        </h2>
+                        <p className="text-xs text-green-600 dark:text-green-400 flex items-center mt-1">
+                            <CheckCircle className="w-3 h-3 mr-1" /> Värde
+                        </p>
                     </div>
                 </div>
             </div>
@@ -198,7 +219,8 @@ export const Dashboard: React.FC = () => {
                                                 "text-xs capitalize px-2 py-0.5 rounded-full inline-block mt-1",
                                                 deal.stage === 'won' ? 'bg-green-100 dark:bg-green-900/30 text-green-800 dark:text-green-300' :
                                                     deal.stage === 'placed' ? 'bg-amber-100 dark:bg-amber-900/30 text-amber-800 dark:text-amber-300' :
-                                                        'bg-slate-100 dark:bg-slate-800 text-slate-700 dark:text-slate-300'
+                                                        deal.stage === 'potential' ? 'bg-blue-100 dark:bg-blue-900/30 text-blue-800 dark:text-blue-300' :
+                                                            'bg-slate-100 dark:bg-slate-800 text-slate-700 dark:text-slate-300'
                                             )}>
                                                 {deal.stage === 'potential' ? 'Möjlighet' :
                                                     deal.stage === 'placed' ? 'Planerat' :
@@ -211,7 +233,7 @@ export const Dashboard: React.FC = () => {
                         </div>
                     ) : (
                         <div className="p-8 text-center text-gray-400 dark:text-gray-500">
-                            <Briefcase className="w-12 h-12 mx-auto mb-2 opacity-20" />
+                            <Bell className="w-12 h-12 mx-auto mb-2 opacity-20" />
                             <p>Inga affärer än. Börja med att lägga till din första affär!</p>
                         </div>
                     )}

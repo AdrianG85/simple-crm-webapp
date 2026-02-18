@@ -292,7 +292,7 @@ export const PipelinePage: React.FC = () => {
                                 </div>
 
                                 {/* Scrollable Cards Area */}
-                                <div className="flex-1 overflow-y-auto min-h-0 pb-20 overscroll-none">
+                                <div className="flex-1 overflow-y-auto min-h-0 pb-20 overscroll-none pr-2 pl-0.5">
                                     <div className="space-y-2">
                                         {columnDeals.length > 0 ? (
                                             columnDeals.map((deal) => {

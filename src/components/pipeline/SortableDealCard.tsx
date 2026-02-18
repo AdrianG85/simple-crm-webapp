@@ -63,18 +63,18 @@ export const SortableDealCard: React.FC<SortableDealCardProps> = ({ deal, contac
                 isDragging && "opacity-30 border-primary-300 dark:border-primary-700"
             )}
         >
-            {/* Mobile Drag Handle */}
+            {/* Mobile Drag Handle - enlarged touch target */}
             {isMobile && (
                 <div
                     {...listeners}
-                    className="absolute left-0 top-0 bottom-0 w-8 flex items-center justify-center cursor-grab active:cursor-grabbing touch-none"
+                    className="absolute left-0 top-0 bottom-0 w-12 flex items-center justify-center cursor-grab active:cursor-grabbing touch-none"
                     onClick={(e) => e.stopPropagation()}
                 >
-                    <GripVertical className="w-4 h-4 text-gray-300 dark:text-gray-600" />
+                    <GripVertical className="w-4 h-4 text-gray-400 dark:text-gray-500" />
                 </div>
             )}
 
-            <div className={cn("flex justify-between items-start mb-1 md:mb-2", isMobile && "ml-6")}>
+            <div className={cn("flex justify-between items-start mb-1 md:mb-2", isMobile && "ml-10")}>
                 <div className="flex-1 mr-2">
                     <h4 className="font-semibold text-gray-900 dark:text-white group-hover:text-primary-600 dark:group-hover:text-primary-400 transition-colors line-clamp-1 text-sm md:text-base">{deal.title}</h4>
                 </div>
@@ -99,12 +99,12 @@ export const SortableDealCard: React.FC<SortableDealCardProps> = ({ deal, contac
                     </span>
                 </div>
             </div>
-            <p className={cn("text-[10px] md:text-xs text-gray-500 dark:text-gray-400 mb-2 md:mb-3 flex items-center gap-1", isMobile && "ml-6")}>
+            <p className={cn("text-[10px] md:text-xs text-gray-500 dark:text-gray-400 mb-2 md:mb-3 flex items-center gap-1", isMobile && "ml-10")}>
                 <AlertCircle className="w-2.5 h-2.5 md:w-3 md:h-3" />
                 {deal.expectedCloseDate || 'Inget datum'}
             </p>
 
-            <div className={cn("mt-1 md:mt-2 pt-1 md:pt-2 border-t border-gray-50 dark:border-gray-600 flex justify-between items-center", isMobile && "ml-6")}>
+            <div className={cn("mt-1 md:mt-2 pt-1 md:pt-2 border-t border-gray-50 dark:border-gray-600 flex justify-between items-center", isMobile && "ml-10")}>
                 <span className="text-[10px] md:text-xs text-gray-400 dark:text-gray-500 truncate">
                     Kund: {contactName || 'Okänd'}
                 </span>
