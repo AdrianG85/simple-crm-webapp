@@ -11,6 +11,10 @@ export interface Contact {
     updatedAt: string;
     createdBy?: string;
     followUp?: boolean;
+    metKontaktVia?: string;
+    nastaSteg?: string;
+    socialUrl?: string;
+    hemsida?: string;
 }
 
 export interface Deal {

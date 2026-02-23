@@ -18,13 +18,17 @@ export const ContactModal: React.FC<ContactModalProps> = ({ isOpen, onClose, onS
         phone: '',
         notes: '',
         followUp: false,
+        metKontaktVia: '',
+        nastaSteg: '',
+        socialUrl: '',
+        hemsida: '',
     });
 
     useEffect(() => {
         if (initialData) {
             setFormData(initialData);
         } else {
-            setFormData({ name: '', company: '', email: '', phone: '', notes: '', followUp: false });
+            setFormData({ name: '', company: '', email: '', phone: '', notes: '', followUp: false, metKontaktVia: '', nastaSteg: '', socialUrl: '', hemsida: '' });
         }
     }, [initialData, isOpen]);
 
@@ -110,10 +114,60 @@ export const ContactModal: React.FC<ContactModalProps> = ({ isOpen, onClose, onS
                 </div>
 
                 <div>
+                    <label className="block text-sm font-medium text-gray-700 dark:text-white mb-1">Hemsida</label>
+                    <input
+                        type="url"
+                        placeholder="https://www.example.se"
+                        className="w-full px-4 py-2 rounded-xl border border-gray-200 bg-white text-gray-900 focus:outline-none focus:ring-2 focus:ring-primary-500 focus:border-transparent"
+                        value={formData.hemsida || ''}
+                        onChange={(e) => setFormData({ ...formData, hemsida: e.target.value })}
+                    />
+                </div>
+
+                <div>
+                    <label className="block text-sm font-medium text-gray-700 dark:text-white mb-1">Vart lärde du känna kontakten?</label>
+                    <select
+                        className="w-full px-4 py-2 rounded-xl border border-gray-200 bg-white text-gray-900 focus:outline-none focus:ring-2 focus:ring-primary-500 focus:border-transparent"
+                        value={formData.metKontaktVia || ''}
+                        onChange={(e) => {
+                            const val = e.target.value;
+                            setFormData({
+                                ...formData,
+                                metKontaktVia: val,
+                                socialUrl: (val === 'Facebook' || val === 'LinkedIn') ? formData.socialUrl : '',
+                            });
+                        }}
+                    >
+                        <option value="">– Välj –</option>
+                        <option value="Facebook">Facebook</option>
+                        <option value="LinkedIn">LinkedIn</option>
+                        <option value="Live">Live</option>
+                    </select>
+                </div>
+
+                {(formData.metKontaktVia === 'Facebook' || formData.metKontaktVia === 'LinkedIn') && (
+                    <div>
+                        <label className="block text-sm font-medium text-gray-700 dark:text-white mb-1">
+                            {formData.metKontaktVia === 'Facebook' ? 'Facebook' : 'LinkedIn'} profil
+                        </label>
+                        <input
+                            type="url"
+                            placeholder={formData.metKontaktVia === 'Facebook'
+                                ? 'https://facebook.com/användarnamn'
+                                : 'https://linkedin.com/in/användarnamn'
+                            }
+                            className="w-full px-4 py-2 rounded-xl border border-gray-200 bg-white text-gray-900 focus:outline-none focus:ring-2 focus:ring-primary-500 focus:border-transparent"
+                            value={formData.socialUrl || ''}
+                            onChange={(e) => setFormData({ ...formData, socialUrl: e.target.value })}
+                        />
+                    </div>
+                )}
+
+                <div>
                     <label className="block text-sm font-medium text-gray-700 dark:text-white mb-1">Anteckningar</label>
                     <textarea
                         rows={3}
-                        placeholder="Detaljer om kontakten..."
+                        placeholder="Hur kan vi hjälpa denna kontakten och hur kan denna kontakten hjälpa oss?"
                         className="w-full px-4 py-2 rounded-xl border border-gray-200 bg-white text-gray-900 focus:outline-none focus:ring-2 focus:ring-primary-500 focus:border-transparent resize-none"
                         value={formData.notes || ''}
                         onChange={(e) => setFormData({ ...formData, notes: e.target.value })}
@@ -133,6 +187,19 @@ export const ContactModal: React.FC<ContactModalProps> = ({ isOpen, onClose, onS
                         </span>
                     </label>
                 </div>
+
+                {formData.followUp && (
+                    <div>
+                        <label className="block text-sm font-medium text-gray-700 dark:text-white mb-1">Nästa steg</label>
+                        <textarea
+                            rows={3}
+                            placeholder="Vad är nästa steg med den här kontakten?"
+                            className="w-full px-4 py-2 rounded-xl border border-amber-300 bg-amber-50 dark:bg-amber-900/10 dark:border-amber-700 text-gray-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-amber-400 focus:border-transparent resize-none"
+                            value={formData.nastaSteg || ''}
+                            onChange={(e) => setFormData({ ...formData, nastaSteg: e.target.value })}
+                        />
+                    </div>
+                )}
 
                 <div className="pt-4 flex flex-col gap-3">
                     <div className="flex gap-3">
