@@ -116,8 +116,8 @@ export const ContactModal: React.FC<ContactModalProps> = ({ isOpen, onClose, onS
                 <div>
                     <label className="block text-sm font-medium text-gray-700 dark:text-white mb-1">Hemsida</label>
                     <input
-                        type="url"
-                        placeholder="https://www.example.se"
+                        type="text"
+                        placeholder="www.example.se"
                         className="w-full px-4 py-2 rounded-xl border border-gray-200 bg-white text-gray-900 focus:outline-none focus:ring-2 focus:ring-primary-500 focus:border-transparent"
                         value={formData.hemsida || ''}
                         onChange={(e) => setFormData({ ...formData, hemsida: e.target.value })}
@@ -151,10 +151,10 @@ export const ContactModal: React.FC<ContactModalProps> = ({ isOpen, onClose, onS
                             {formData.metKontaktVia === 'Facebook' ? 'Facebook' : 'LinkedIn'} profil
                         </label>
                         <input
-                            type="url"
+                            type="text"
                             placeholder={formData.metKontaktVia === 'Facebook'
-                                ? 'https://facebook.com/användarnamn'
-                                : 'https://linkedin.com/in/användarnamn'
+                                ? 'facebook.com/användarnamn'
+                                : 'linkedin.com/in/användarnamn'
                             }
                             className="w-full px-4 py-2 rounded-xl border border-gray-200 bg-white text-gray-900 focus:outline-none focus:ring-2 focus:ring-primary-500 focus:border-transparent"
                             value={formData.socialUrl || ''}
