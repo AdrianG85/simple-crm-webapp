@@ -138,12 +138,17 @@ export const ContactsPage: React.FC = () => {
                                         <span><Redacted type="name">{contact.phone}</Redacted></span>
                                     </div>
                                 )}
-                                {contact.notes && (
+                                {contact.followUp && contact.nastaSteg ? (
+                                    <div className="mt-3 pt-3 border-t border-amber-100 dark:border-amber-900/30 flex flex-col gap-1">
+                                        <span className="text-[10px] font-bold text-amber-500 dark:text-amber-400 uppercase tracking-wider">Nästa steg</span>
+                                        <p className="text-xs text-amber-700 dark:text-amber-300 line-clamp-2 italic"><Redacted type="text">{contact.nastaSteg}</Redacted></p>
+                                    </div>
+                                ) : contact.notes ? (
                                     <div className="mt-3 pt-3 border-t border-gray-50 dark:border-gray-700 flex flex-col gap-1">
                                         <span className="text-[10px] font-bold text-gray-400 dark:text-gray-500 uppercase tracking-wider">Anteckningar</span>
                                         <p className="text-xs text-gray-500 dark:text-gray-400 line-clamp-2 italic"><Redacted type="text">{contact.notes}</Redacted></p>
                                     </div>
-                                )}
+                                ) : null}
                             </div>
                         </div>
                     ))
