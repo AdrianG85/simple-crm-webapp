@@ -23,11 +23,18 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
     const [loading, setLoading] = useState(true);
     const { user } = useAuth();
 
-    // Initial load
+    // Initial load — re-run whenever the auth user changes (fixes post-login race condition)
     useEffect(() => {
-        fetchData();
+        if (user) {
+            fetchData();
+        } else {
+            // User logged out — clear local state
+            setContacts([]);
+            setDeals([]);
+            setLoading(false);
+        }
 
-        // Subscribe to changes
+        // Subscribe to realtime changes
         const contactsSubscription = supabase
             .channel('public:contacts')
             .on('postgres_changes', { event: '*', schema: 'public', table: 'contacts' }, (payload: any) => {
@@ -52,7 +59,7 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
             contactsSubscription.unsubscribe();
             dealsSubscription.unsubscribe();
         };
-    }, []);
+    }, [user]);
 
     const fetchData = async () => {
         setLoading(true);
