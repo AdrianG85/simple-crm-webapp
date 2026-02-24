@@ -15,6 +15,8 @@ export interface Contact {
     nastaSteg?: string;
     socialUrl?: string;
     hemsida?: string;
+    nextAction?: string;
+    nextActionDate?: string;
 }
 
 export interface Deal {
@@ -30,4 +32,12 @@ export interface Deal {
     updatedAt: string;
     createdBy?: string;
     followUp?: boolean;
+}
+
+export interface ContactActivity {
+    id: string;
+    contactId: string;
+    note: string;
+    createdAt: string;
+    createdBy?: string;
 }

@@ -2,6 +2,8 @@ import React, { useState, useEffect } from 'react';
 import type { Contact } from '../types';
 import { Modal } from './ui/Modal';
 import { ConfirmDialog } from './ui/ConfirmDialog';
+import { ActivityLog } from './ActivityLog';
+import { ArrowRight } from 'lucide-react';
 
 interface ContactModalProps {
     isOpen: boolean;
@@ -24,13 +26,15 @@ export const ContactModal: React.FC<ContactModalProps> = ({ isOpen, onClose, onS
         nastaSteg: '',
         socialUrl: '',
         hemsida: '',
+        nextAction: '',
+        nextActionDate: '',
     });
 
     useEffect(() => {
         if (initialData) {
             setFormData(initialData);
         } else {
-            setFormData({ name: '', company: '', email: '', phone: '', notes: '', followUp: false, metKontaktVia: '', nastaSteg: '', socialUrl: '', hemsida: '' });
+            setFormData({ name: '', company: '', email: '', phone: '', notes: '', followUp: false, metKontaktVia: '', nastaSteg: '', socialUrl: '', hemsida: '', nextAction: '', nextActionDate: '' });
         }
     }, [initialData, isOpen]);
 
@@ -244,6 +248,55 @@ export const ContactModal: React.FC<ContactModalProps> = ({ isOpen, onClose, onS
                         )}
                     </div>
                 </form>
+
+                {/* Next Action + Activity Log — only when editing existing contact */}
+                {initialData?.id && (
+                    <div className="px-4 pb-4 space-y-4">
+                        <hr className="border-gray-100 dark:border-gray-700" />
+
+                        {/* Next Action */}
+                        <div className="space-y-2">
+                            <div className="flex items-center gap-2">
+                                <ArrowRight className="w-4 h-4 text-amber-500" />
+                                <h4 className="text-sm font-semibold text-gray-700 dark:text-gray-200">Nästa åtgärd</h4>
+                            </div>
+                            <input
+                                type="text"
+                                placeholder="T.ex. Skicka offert, Boka möte..."
+                                className="w-full px-3 py-2 rounded-xl border border-amber-200 dark:border-amber-700 bg-amber-50 dark:bg-amber-900/10 text-gray-900 dark:text-white text-sm focus:outline-none focus:ring-2 focus:ring-amber-400"
+                                value={formData.nextAction || ''}
+                                onChange={(e) => setFormData({ ...formData, nextAction: e.target.value })}
+                            />
+                            <input
+                                type="date"
+                                className="w-full px-3 py-2 rounded-xl border border-amber-200 dark:border-amber-700 bg-amber-50 dark:bg-amber-900/10 text-gray-900 dark:text-white text-sm focus:outline-none focus:ring-2 focus:ring-amber-400"
+                                value={formData.nextActionDate || ''}
+                                onChange={(e) => setFormData({ ...formData, nextActionDate: e.target.value })}
+                            />
+                            <button
+                                type="button"
+                                onClick={() => {
+                                    if (initialData) {
+                                        import('../lib/supabase').then(({ supabase }) => {
+                                            supabase.from('contacts').update({
+                                                next_action: formData.nextAction,
+                                                next_action_date: formData.nextActionDate || null,
+                                            }).eq('id', initialData.id);
+                                        });
+                                    }
+                                }}
+                                className="text-xs text-primary-600 dark:text-primary-400 hover:underline"
+                            >
+                                Spara nästa åtgärd
+                            </button>
+                        </div>
+
+                        <hr className="border-gray-100 dark:border-gray-700" />
+
+                        {/* Activity Log */}
+                        <ActivityLog contactId={initialData.id} />
+                    </div>
+                )}
             </Modal>
         </>
     );

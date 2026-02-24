@@ -13,6 +13,8 @@ interface AppContextType {
     addDeal: (deal: Partial<Deal>) => Promise<void>;
     updateDeal: (deal: Deal) => Promise<void>;
     deleteDeal: (id: string) => Promise<void>;
+    addActivity: (contactId: string, note: string) => Promise<void>;
+    deleteActivity: (id: string) => Promise<void>;
 }
 
 const AppContext = createContext<AppContextType | undefined>(undefined);
@@ -28,32 +30,24 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
         if (user) {
             fetchData();
         } else {
-            // User logged out — clear local state
             setContacts([]);
             setDeals([]);
             setLoading(false);
         }
 
-        // Subscribe to realtime changes
         const contactsSubscription = supabase
             .channel('public:contacts')
-            .on('postgres_changes', { event: '*', schema: 'public', table: 'contacts' }, (payload: any) => {
-                console.log('Contacts change received:', payload);
+            .on('postgres_changes', { event: '*', schema: 'public', table: 'contacts' }, () => {
                 fetchContacts();
             })
-            .subscribe((status: string) => {
-                console.log('Contacts subscription status:', status);
-            });
+            .subscribe();
 
         const dealsSubscription = supabase
             .channel('public:deals')
-            .on('postgres_changes', { event: '*', schema: 'public', table: 'deals' }, (payload: any) => {
-                console.log('Deals change received:', payload);
+            .on('postgres_changes', { event: '*', schema: 'public', table: 'deals' }, () => {
                 fetchDeals();
             })
-            .subscribe((status: string) => {
-                console.log('Deals subscription status:', status);
-            });
+            .subscribe();
 
         return () => {
             contactsSubscription.unsubscribe();
@@ -68,103 +62,72 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
     };
 
     const fetchContacts = async () => {
-        const { data, error } = await supabase
-            .from('contacts')
-            .select('*')
-            .order('name');
-
-        if (error) {
-            console.error('Error fetching contacts:', error);
-            return;
-        }
+        const { data, error } = await supabase.from('contacts').select('*').order('name');
+        if (error) { console.error('Error fetching contacts:', error); return; }
         setContacts(data || []);
     };
 
     const fetchDeals = async () => {
-        const { data, error } = await supabase
-            .from('deals')
-            .select('*')
-            .order('createdAt', { ascending: false });
-
-        if (error) {
-            console.error('Error fetching deals:', error);
-            return;
-        }
+        const { data, error } = await supabase.from('deals').select('*').order('createdAt', { ascending: false });
+        if (error) { console.error('Error fetching deals:', error); return; }
         setDeals(data || []);
     };
 
     const addContact = async (contact: Partial<Contact>) => {
-        const { error } = await supabase
-            .from('contacts')
-            .insert([{ ...contact, createdBy: user?.email }]);
-
+        const { error } = await supabase.from('contacts').insert([{ ...contact, createdBy: user?.email }]);
         if (error) throw error;
         await fetchContacts();
     };
 
     const updateContact = async (updatedContact: Contact) => {
-        const { error } = await supabase
-            .from('contacts')
-            .update(updatedContact)
-            .eq('id', updatedContact.id);
-
+        const { error } = await supabase.from('contacts').update(updatedContact).eq('id', updatedContact.id);
         if (error) throw error;
         await fetchContacts();
     };
 
     const deleteContact = async (id: string) => {
-        const { error } = await supabase
-            .from('contacts')
-            .delete()
-            .eq('id', id);
-
+        const { error } = await supabase.from('contacts').delete().eq('id', id);
         if (error) throw error;
         await fetchContacts();
     };
 
     const addDeal = async (deal: Partial<Deal>) => {
-        const { error } = await supabase
-            .from('deals')
-            .insert([{ ...deal, createdBy: user?.email }]);
-
+        const { error } = await supabase.from('deals').insert([{ ...deal, createdBy: user?.email }]);
         if (error) throw error;
         await fetchDeals();
     };
 
     const updateDeal = async (updatedDeal: Deal) => {
-        const { error } = await supabase
-            .from('deals')
-            .update(updatedDeal)
-            .eq('id', updatedDeal.id);
-
+        const { error } = await supabase.from('deals').update(updatedDeal).eq('id', updatedDeal.id);
         if (error) throw error;
         await fetchDeals();
     };
 
     const deleteDeal = async (id: string) => {
-        const { error } = await supabase
-            .from('deals')
-            .delete()
-            .eq('id', id);
-
+        const { error } = await supabase.from('deals').delete().eq('id', id);
         if (error) throw error;
         await fetchDeals();
     };
 
+    const addActivity = async (contactId: string, note: string) => {
+        const { error } = await supabase
+            .from('contact_activities')
+            .insert([{ contact_id: contactId, note, created_by: user?.email }]);
+        if (error) throw error;
+    };
+
+    const deleteActivity = async (id: string) => {
+        const { error } = await supabase.from('contact_activities').delete().eq('id', id);
+        if (error) throw error;
+    };
+
     return (
-        <AppContext.Provider
-            value={{
-                contacts,
-                deals,
-                loading,
-                addContact,
-                updateContact,
-                deleteContact,
-                addDeal,
-                updateDeal,
-                deleteDeal,
-            }}
-        >
+        <AppContext.Provider value={{
+            contacts, deals, loading,
+            addContact, updateContact, deleteContact,
+            addDeal, updateDeal, deleteDeal,
+            addActivity, deleteActivity,
+        }}>
             {children}
         </AppContext.Provider>
     );
@@ -172,8 +135,6 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
 
 export const useApp = () => {
     const context = useContext(AppContext);
-    if (context === undefined) {
-        throw new Error('useApp must be used within an AppProvider');
-    }
+    if (context === undefined) throw new Error('useApp must be used within an AppProvider');
     return context;
 };
