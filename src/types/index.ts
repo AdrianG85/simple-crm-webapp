@@ -32,11 +32,21 @@ export interface Deal {
     updatedAt: string;
     createdBy?: string;
     followUp?: boolean;
+    nextAction?: string;
+    nextActionDate?: string;
 }
 
 export interface ContactActivity {
     id: string;
     contactId: string;
+    note: string;
+    createdAt: string;
+    createdBy?: string;
+}
+
+export interface DealActivity {
+    id: string;
+    dealId: string;
     note: string;
     createdAt: string;
     createdBy?: string;

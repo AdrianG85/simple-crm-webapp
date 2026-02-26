@@ -2,7 +2,10 @@ import React, { useState, useEffect } from 'react';
 import type { Deal, DealStage } from '../types';
 import { Modal } from './ui/Modal';
 import { ConfirmDialog } from './ui/ConfirmDialog';
+import { ActivityLog } from './ActivityLog';
 import { useApp } from '../context/AppContext';
+import { ArrowRight } from 'lucide-react';
+import { supabase } from '../lib/supabase';
 
 interface DealModalProps {
     isOpen: boolean;
@@ -31,6 +34,8 @@ export const DealModal: React.FC<DealModalProps> = ({ isOpen, onClose, onSubmit,
         expectedCloseDate: '',
         notes: '',
         followUp: false,
+        nextAction: '',
+        nextActionDate: '',
     });
 
     useEffect(() => {
@@ -43,9 +48,11 @@ export const DealModal: React.FC<DealModalProps> = ({ isOpen, onClose, onSubmit,
                 value: 0,
                 currency: 'SEK',
                 stage: 'potential',
-                expectedCloseDate: new Date().toISOString().split('T')[0], // Today as default
+                expectedCloseDate: new Date().toISOString().split('T')[0],
                 notes: '',
                 followUp: false,
+                nextAction: '',
+                nextActionDate: '',
             });
         }
     }, [initialData, isOpen]);
@@ -65,7 +72,6 @@ export const DealModal: React.FC<DealModalProps> = ({ isOpen, onClose, onSubmit,
             notes: formData.notes || '',
         };
 
-        // Remove ID and timestamps for new items (Supabase handles them)
         if (!initialData) {
             delete deal.id;
             delete deal.createdAt;
@@ -88,6 +94,14 @@ export const DealModal: React.FC<DealModalProps> = ({ isOpen, onClose, onSubmit,
             onDelete(initialData.id);
             onClose();
         }
+    };
+
+    const handleSaveNextStep = () => {
+        if (!initialData?.id) return;
+        supabase.from('deals').update({
+            next_action: formData.nextAction,
+            next_action_date: formData.nextActionDate || null,
+        }).eq('id', initialData.id);
     };
 
     return (
@@ -222,6 +236,46 @@ export const DealModal: React.FC<DealModalProps> = ({ isOpen, onClose, onSubmit,
                         )}
                     </div>
                 </form>
+
+                {/* Nästa steg + Activity Log — only when editing existing deal */}
+                {initialData?.id && (
+                    <div className="px-4 pb-4 space-y-4">
+                        <hr className="border-gray-100 dark:border-gray-700" />
+
+                        {/* Nästa steg */}
+                        <div className="space-y-2">
+                            <div className="flex items-center gap-2">
+                                <ArrowRight className="w-4 h-4 text-amber-500" />
+                                <h4 className="text-sm font-semibold text-gray-700 dark:text-gray-200">Nästa steg</h4>
+                            </div>
+                            <input
+                                type="text"
+                                placeholder="T.ex. Skicka offert, Boka möte..."
+                                className="w-full px-3 py-2 rounded-xl border border-amber-200 dark:border-amber-700 bg-amber-50 dark:bg-amber-900/10 text-gray-900 dark:text-white text-sm focus:outline-none focus:ring-2 focus:ring-amber-400"
+                                value={formData.nextAction || ''}
+                                onChange={(e) => setFormData({ ...formData, nextAction: e.target.value })}
+                            />
+                            <input
+                                type="date"
+                                className="w-full px-3 py-2 rounded-xl border border-amber-200 dark:border-amber-700 bg-amber-50 dark:bg-amber-900/10 text-gray-900 dark:text-white text-sm focus:outline-none focus:ring-2 focus:ring-amber-400"
+                                value={formData.nextActionDate || ''}
+                                onChange={(e) => setFormData({ ...formData, nextActionDate: e.target.value })}
+                            />
+                            <button
+                                type="button"
+                                onClick={handleSaveNextStep}
+                                className="text-xs text-primary-600 dark:text-primary-400 hover:underline"
+                            >
+                                Spara nästa steg
+                            </button>
+                        </div>
+
+                        <hr className="border-gray-100 dark:border-gray-700" />
+
+                        {/* Activity Log */}
+                        <ActivityLog entityType="deal" entityId={initialData.id} />
+                    </div>
+                )}
             </Modal>
         </>
     );

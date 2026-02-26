@@ -2,11 +2,20 @@ import React, { useState, useEffect, useCallback } from 'react';
 import { supabase } from '../lib/supabase';
 import { useApp } from '../context/AppContext';
 import { ConfirmDialog } from './ui/ConfirmDialog';
-import type { ContactActivity } from '../types';
 import { PlusCircle, Trash2, BookOpen } from 'lucide-react';
 
+type EntityType = 'contact' | 'deal';
+
 interface ActivityLogProps {
-    contactId: string;
+    entityType: EntityType;
+    entityId: string;
+}
+
+interface Activity {
+    id: string;
+    note: string;
+    createdAt: string;
+    createdBy?: string;
 }
 
 function formatDate(iso: string) {
@@ -17,30 +26,32 @@ function formatDate(iso: string) {
     });
 }
 
-export const ActivityLog: React.FC<ActivityLogProps> = ({ contactId }) => {
-    const { addActivity, deleteActivity } = useApp();
-    const [activities, setActivities] = useState<ContactActivity[]>([]);
+export const ActivityLog: React.FC<ActivityLogProps> = ({ entityType, entityId }) => {
+    const { addActivity, deleteActivity, addDealActivity, deleteDealActivity } = useApp();
+    const [activities, setActivities] = useState<Activity[]>([]);
     const [note, setNote] = useState('');
     const [saving, setSaving] = useState(false);
     const [deleteTarget, setDeleteTarget] = useState<string | null>(null);
 
+    const table = entityType === 'contact' ? 'contact_activities' : 'deal_activities';
+    const idColumn = entityType === 'contact' ? 'contact_id' : 'deal_id';
+
     const fetchActivities = useCallback(async () => {
         const { data, error } = await supabase
-            .from('contact_activities')
+            .from(table)
             .select('*')
-            .eq('contact_id', contactId)
+            .eq(idColumn, entityId)
             .order('created_at', { ascending: false });
 
         if (error) { console.error('Error fetching activities:', error); return; }
 
         setActivities((data || []).map((row: any) => ({
             id: row.id,
-            contactId: row.contact_id,
             note: row.note,
             createdAt: row.created_at,
             createdBy: row.created_by,
         })));
-    }, [contactId]);
+    }, [entityId, table, idColumn]);
 
     useEffect(() => {
         fetchActivities();
@@ -50,7 +61,11 @@ export const ActivityLog: React.FC<ActivityLogProps> = ({ contactId }) => {
         if (!note.trim()) return;
         setSaving(true);
         try {
-            await addActivity(contactId, note.trim());
+            if (entityType === 'contact') {
+                await addActivity(entityId, note.trim());
+            } else {
+                await addDealActivity(entityId, note.trim());
+            }
             setNote('');
             await fetchActivities();
         } catch (e) {
@@ -63,7 +78,11 @@ export const ActivityLog: React.FC<ActivityLogProps> = ({ contactId }) => {
     const handleDelete = async () => {
         if (!deleteTarget) return;
         try {
-            await deleteActivity(deleteTarget);
+            if (entityType === 'contact') {
+                await deleteActivity(deleteTarget);
+            } else {
+                await deleteDealActivity(deleteTarget);
+            }
             await fetchActivities();
         } catch (e) {
             console.error('Failed to delete activity:', e);
@@ -122,7 +141,6 @@ export const ActivityLog: React.FC<ActivityLogProps> = ({ contactId }) => {
                             key={a.id}
                             className="group relative flex gap-3 p-3 rounded-xl bg-gray-50 dark:bg-gray-700/50 border border-gray-100 dark:border-gray-600"
                         >
-                            {/* Timeline dot */}
                             <div className="mt-1 flex-shrink-0 w-2 h-2 rounded-full bg-primary-500" />
                             <div className="flex-1 min-w-0">
                                 <p className="text-sm text-gray-800 dark:text-gray-100 whitespace-pre-wrap break-words">{a.note}</p>

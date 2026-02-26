@@ -15,6 +15,8 @@ interface AppContextType {
     deleteDeal: (id: string) => Promise<void>;
     addActivity: (contactId: string, note: string) => Promise<void>;
     deleteActivity: (id: string) => Promise<void>;
+    addDealActivity: (dealId: string, note: string) => Promise<void>;
+    deleteDealActivity: (id: string) => Promise<void>;
 }
 
 const AppContext = createContext<AppContextType | undefined>(undefined);
@@ -121,12 +123,25 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
         if (error) throw error;
     };
 
+    const addDealActivity = async (dealId: string, note: string) => {
+        const { error } = await supabase
+            .from('deal_activities')
+            .insert([{ deal_id: dealId, note, created_by: user?.email }]);
+        if (error) throw error;
+    };
+
+    const deleteDealActivity = async (id: string) => {
+        const { error } = await supabase.from('deal_activities').delete().eq('id', id);
+        if (error) throw error;
+    };
+
     return (
         <AppContext.Provider value={{
             contacts, deals, loading,
             addContact, updateContact, deleteContact,
             addDeal, updateDeal, deleteDeal,
             addActivity, deleteActivity,
+            addDealActivity, deleteDealActivity,
         }}>
             {children}
         </AppContext.Provider>

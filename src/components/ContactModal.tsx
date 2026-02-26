@@ -258,7 +258,7 @@ export const ContactModal: React.FC<ContactModalProps> = ({ isOpen, onClose, onS
                         <div className="space-y-2">
                             <div className="flex items-center gap-2">
                                 <ArrowRight className="w-4 h-4 text-amber-500" />
-                                <h4 className="text-sm font-semibold text-gray-700 dark:text-gray-200">Nästa åtgärd</h4>
+                                <h4 className="text-sm font-semibold text-gray-700 dark:text-gray-200">Nästa steg</h4>
                             </div>
                             <input
                                 type="text"
@@ -287,14 +287,14 @@ export const ContactModal: React.FC<ContactModalProps> = ({ isOpen, onClose, onS
                                 }}
                                 className="text-xs text-primary-600 dark:text-primary-400 hover:underline"
                             >
-                                Spara nästa åtgärd
+                                Spara nästa steg
                             </button>
                         </div>
 
                         <hr className="border-gray-100 dark:border-gray-700" />
 
                         {/* Activity Log */}
-                        <ActivityLog contactId={initialData.id} />
+                        <ActivityLog entityType="contact" entityId={initialData.id} />
                     </div>
                 )}
             </Modal>
