@@ -12,7 +12,7 @@ export interface Contact {
     createdBy?: string;
     followUp?: boolean;
     metKontaktVia?: string;
-    nastaSteg?: string;
+
     socialUrl?: string;
     hemsida?: string;
     nextAction?: string;
@@ -50,4 +50,17 @@ export interface DealActivity {
     note: string;
     createdAt: string;
     createdBy?: string;
+}
+
+export type CalendarEventType = 'deal-deadline' | 'new-deal' | 'new-contact';
+
+export interface CalendarEvent {
+    id: string;
+    title: string;
+    type: CalendarEventType;
+    date: string; // YYYY-MM-DD
+    createdBy?: string;
+    stage?: DealStage;
+    value?: number;
+    currency?: string;
 }

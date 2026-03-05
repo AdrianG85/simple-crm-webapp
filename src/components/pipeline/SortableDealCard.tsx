@@ -10,10 +10,11 @@ import { Redacted } from '../ui/Redacted';
 interface SortableDealCardProps {
     deal: Deal;
     contactName?: string;
+    latestActivity?: { note: string; rubrik: string | null };
     onClick: (deal: Deal) => void;
 }
 
-export const SortableDealCard: React.FC<SortableDealCardProps> = ({ deal, contactName, onClick }) => {
+export const SortableDealCard: React.FC<SortableDealCardProps> = ({ deal, contactName, latestActivity, onClick }) => {
     const { updateDeal } = useApp();
     const {
         attributes,
@@ -106,6 +107,35 @@ export const SortableDealCard: React.FC<SortableDealCardProps> = ({ deal, contac
                 <AlertCircle className="w-2.5 h-2.5 md:w-3 md:h-3" />
                 {deal.expectedCloseDate || 'Inget datum'}
             </p>
+
+            {/* Mobile View: Show Nästa steg if activity exists, else Anteckningar */
+                isMobile ? (
+                    latestActivity ? (
+                        <div className={cn("mt-2 pt-2 border-t border-gray-50 dark:border-gray-600 flex flex-col gap-0.5 ml-10")}>
+                            <span className="text-[9px] md:text-[10px] font-bold text-amber-500 dark:text-amber-400 uppercase tracking-wider">Senaste aktivitet</span>
+                            {latestActivity.rubrik && <p className="text-[10px] font-semibold text-gray-900 dark:text-white line-clamp-1"><Redacted type="text">{latestActivity.rubrik}</Redacted></p>}
+                            <p className="text-[10px] text-gray-500 dark:text-gray-400 line-clamp-2 italic"><Redacted type="text">{latestActivity.note}</Redacted></p>
+                        </div>
+                    ) : deal.notes ? (
+                        <div className={cn("mt-2 pt-2 border-t border-gray-50 dark:border-gray-600 flex flex-col gap-0.5 ml-10")}>
+                            <span className="text-[9px] md:text-[10px] font-bold text-gray-400 dark:text-gray-500 uppercase tracking-wider">Anteckningar</span>
+                            <p className="text-[10px] text-gray-500 dark:text-gray-400 line-clamp-2 italic"><Redacted type="text">{deal.notes}</Redacted></p>
+                        </div>
+                    ) : null
+                ) : (
+                    /* Desktop View: Keep previous condition (followUp + activity) */
+                    deal.followUp && latestActivity ? (
+                        <div className="mt-2 pt-2 border-t border-amber-100 dark:border-amber-900/30 flex flex-col gap-0.5">
+                            <span className="text-[9px] md:text-[10px] font-bold text-amber-500 dark:text-amber-400 uppercase tracking-wider">Senaste aktivitet</span>
+                            <p className="text-[10px] md:text-xs text-amber-700 dark:text-amber-300 line-clamp-2 italic"><Redacted type="text">{latestActivity.note}</Redacted></p>
+                        </div>
+                    ) : deal.notes ? (
+                        <div className="mt-2 pt-2 border-t border-gray-50 dark:border-gray-600 flex flex-col gap-0.5">
+                            <span className="text-[9px] md:text-[10px] font-bold text-gray-400 dark:text-gray-500 uppercase tracking-wider">Anteckningar</span>
+                            <p className="text-[10px] md:text-xs text-gray-500 dark:text-gray-400 line-clamp-2 italic"><Redacted type="text">{deal.notes}</Redacted></p>
+                        </div>
+                    ) : null
+                )}
 
             <div className={cn("mt-1 md:mt-2 pt-1 md:pt-2 border-t border-gray-50 dark:border-gray-600 flex justify-between items-center", isMobile && "ml-10")}>
                 <span className="text-[10px] md:text-xs text-gray-400 dark:text-gray-500 truncate">

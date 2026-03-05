@@ -3,7 +3,7 @@ import type { Contact } from '../types';
 import { Modal } from './ui/Modal';
 import { ConfirmDialog } from './ui/ConfirmDialog';
 import { ActivityLog } from './ActivityLog';
-import { ArrowRight } from 'lucide-react';
+import { Bell, X, ChevronRight } from 'lucide-react';
 
 interface ContactModalProps {
     isOpen: boolean;
@@ -15,6 +15,7 @@ interface ContactModalProps {
 
 export const ContactModal: React.FC<ContactModalProps> = ({ isOpen, onClose, onSubmit, onDelete, initialData }) => {
     const [showConfirm, setShowConfirm] = useState(false);
+    const [showNastaSteg, setShowNastaSteg] = useState(false);
     const [formData, setFormData] = useState<Partial<Contact>>({
         name: '',
         company: '',
@@ -23,7 +24,6 @@ export const ContactModal: React.FC<ContactModalProps> = ({ isOpen, onClose, onS
         notes: '',
         followUp: false,
         metKontaktVia: '',
-        nastaSteg: '',
         socialUrl: '',
         hemsida: '',
         nextAction: '',
@@ -31,10 +31,11 @@ export const ContactModal: React.FC<ContactModalProps> = ({ isOpen, onClose, onS
     });
 
     useEffect(() => {
+        setShowNastaSteg(false);
         if (initialData) {
             setFormData(initialData);
         } else {
-            setFormData({ name: '', company: '', email: '', phone: '', notes: '', followUp: false, metKontaktVia: '', nastaSteg: '', socialUrl: '', hemsida: '', nextAction: '', nextActionDate: '' });
+            setFormData({ name: '', company: '', email: '', phone: '', notes: '', followUp: false, metKontaktVia: '', socialUrl: '', hemsida: '', nextAction: '', nextActionDate: '' });
         }
     }, [initialData, isOpen]);
 
@@ -76,6 +77,62 @@ export const ContactModal: React.FC<ContactModalProps> = ({ isOpen, onClose, onS
         }
     };
 
+    // Desktop side panel — always shown when editing on desktop
+    const sidePanel = initialData?.id ? (
+        <div className="p-4 space-y-4">
+
+            {/* Markera checkbox on left, Nästa steg header on right */}
+            <div className="flex items-center gap-2 border-b border-gray-100 dark:border-gray-700 pb-3">
+                <label className="flex items-center gap-2 cursor-pointer group">
+                    <input
+                        type="checkbox"
+                        className="w-4 h-4 rounded border-gray-300 text-primary-600 focus:ring-primary-500"
+                        checked={formData.followUp || false}
+                        onChange={(e) => setFormData({ ...formData, followUp: e.target.checked })}
+                    />
+                    <span className="text-xs font-medium text-gray-500 dark:text-gray-400 group-hover:text-primary-600 transition-colors whitespace-nowrap">
+                        Markera för uppföljning
+                    </span>
+                </label>
+                <div className="flex items-center gap-2 ml-auto">
+                    <div className="w-7 h-7 rounded-full bg-amber-100 dark:bg-amber-900/30 flex items-center justify-center flex-shrink-0">
+                        <Bell className="w-4 h-4 text-amber-500" />
+                    </div>
+                    <h4 className="font-semibold text-gray-900 dark:text-white text-sm">Nästa steg</h4>
+                </div>
+            </div>
+
+            {/* nextActionDate */}
+            <div>
+                <label className="block text-[10px] font-bold text-gray-400 dark:text-gray-500 mb-1 uppercase tracking-wider">Datum</label>
+                <input
+                    type="date"
+                    className="w-full px-3 py-2 rounded-xl border border-amber-200 dark:border-amber-700 bg-white dark:bg-gray-700 text-gray-900 dark:text-white text-sm focus:outline-none focus:ring-2 focus:ring-amber-400"
+                    value={formData.nextActionDate || ''}
+                    onChange={(e) => setFormData({ ...formData, nextActionDate: e.target.value })}
+                />
+            </div>
+
+
+            {/* nextAction — now labelled Rubrik */}
+            <div>
+                <label className="block text-[10px] font-bold text-gray-400 dark:text-gray-500 mb-1 uppercase tracking-wider">Rubrik</label>
+                <input
+                    type="text"
+                    placeholder="T.ex. Skicka offert, Boka möte..."
+                    className="w-full px-3 py-2 rounded-xl border border-amber-200 dark:border-amber-700 bg-white dark:bg-gray-700 text-gray-900 dark:text-white text-sm focus:outline-none focus:ring-2 focus:ring-amber-400"
+                    value={formData.nextAction || ''}
+                    onChange={(e) => setFormData({ ...formData, nextAction: e.target.value })}
+                />
+            </div>
+
+
+
+            {/* Activity Log — always visible in side panel when editing */}
+            <ActivityLog entityType="contact" entityId={initialData.id} />
+        </div>
+    ) : undefined;
+
     return (
         <>
             <ConfirmDialog
@@ -86,8 +143,50 @@ export const ContactModal: React.FC<ContactModalProps> = ({ isOpen, onClose, onS
                 onConfirm={handleConfirmDelete}
                 onCancel={() => setShowConfirm(false)}
             />
-            <Modal isOpen={isOpen} onClose={onClose} title={initialData ? 'Redigera Kontakt' : 'Ny Kontakt'}>
+            <Modal isOpen={isOpen} onClose={onClose} title={initialData ? 'Redigera Kontakt' : 'Ny Kontakt'} sidePanel={sidePanel}>
                 <form onSubmit={handleSubmit} className="space-y-4">
+                    {/* Mobile-only: header row */}
+                    <div className="md:hidden">
+                        {!initialData?.id ? (
+                            <label className="flex items-center gap-2 cursor-pointer group">
+                                <input
+                                    type="checkbox"
+                                    className="w-4 h-4 rounded border-gray-300 text-primary-600 focus:ring-primary-500"
+                                    checked={formData.followUp || false}
+                                    onChange={(e) => setFormData({ ...formData, followUp: e.target.checked })}
+                                />
+                                <span className="text-sm font-medium text-gray-700 dark:text-gray-300 group-hover:text-primary-600 transition-colors">
+                                    Markera för uppföljning
+                                </span>
+                            </label>
+                        ) : (
+                            <div className="flex items-center gap-2 border-b border-gray-100 dark:border-gray-700 pb-3">
+                                <label className="flex items-center gap-2 cursor-pointer group">
+                                    <input
+                                        type="checkbox"
+                                        className="w-4 h-4 rounded border-gray-300 text-primary-600 focus:ring-primary-500"
+                                        checked={formData.followUp || false}
+                                        onChange={(e) => setFormData({ ...formData, followUp: e.target.checked })}
+                                    />
+                                    <span className="text-xs font-medium text-gray-500 dark:text-gray-400 group-hover:text-primary-600 transition-colors whitespace-nowrap">
+                                        Markera för uppföljning
+                                    </span>
+                                </label>
+                                <button
+                                    type="button"
+                                    onClick={() => setShowNastaSteg(true)}
+                                    className="flex items-center gap-1.5 ml-auto group active:opacity-70"
+                                >
+                                    <div className="w-7 h-7 rounded-full bg-amber-100 dark:bg-amber-900/30 flex items-center justify-center flex-shrink-0">
+                                        <Bell className="w-4 h-4 text-amber-500" />
+                                    </div>
+                                    <h4 className="font-semibold text-gray-900 dark:text-white text-sm">Nästa steg</h4>
+                                    <ChevronRight className="w-4 h-4 text-amber-400" />
+                                </button>
+                            </div>
+                        )}
+                    </div>
+
                     <div>
                         <label className="block text-sm font-medium text-gray-700 dark:text-white mb-1">Namn *</label>
                         <input
@@ -194,32 +293,9 @@ export const ContactModal: React.FC<ContactModalProps> = ({ isOpen, onClose, onS
                         />
                     </div>
 
-                    <div>
-                        <label className="flex items-center gap-2 cursor-pointer group">
-                            <input
-                                type="checkbox"
-                                className="w-4 h-4 rounded border-gray-300 text-primary-600 focus:ring-primary-500"
-                                checked={formData.followUp || false}
-                                onChange={(e) => setFormData({ ...formData, followUp: e.target.checked })}
-                            />
-                            <span className="text-sm font-medium text-gray-700 dark:text-gray-300 group-hover:text-primary-600 transition-colors">
-                                Markera för uppföljning
-                            </span>
-                        </label>
-                    </div>
 
-                    {formData.followUp && (
-                        <div>
-                            <label className="block text-sm font-medium text-gray-700 dark:text-white mb-1">Nästa steg</label>
-                            <textarea
-                                rows={3}
-                                placeholder="Vad är nästa steg med den här kontakten?"
-                                className="w-full px-4 py-2 rounded-xl border border-amber-300 bg-amber-50 dark:bg-amber-900/10 dark:border-amber-700 text-gray-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-amber-400 focus:border-transparent resize-none"
-                                value={formData.nastaSteg || ''}
-                                onChange={(e) => setFormData({ ...formData, nastaSteg: e.target.value })}
-                            />
-                        </div>
-                    )}
+
+
 
                     <div className="pt-4 flex flex-col gap-3">
                         <div className="flex gap-3">
@@ -248,56 +324,55 @@ export const ContactModal: React.FC<ContactModalProps> = ({ isOpen, onClose, onS
                         )}
                     </div>
                 </form>
+            </Modal>
 
-                {/* Next Action + Activity Log — only when editing existing contact */}
-                {initialData?.id && (
-                    <div className="px-4 pb-4 space-y-4">
-                        <hr className="border-gray-100 dark:border-gray-700" />
-
-                        {/* Next Action */}
-                        <div className="space-y-2">
+            {/* Mobile-only: Nästa steg bottom sheet */}
+            {showNastaSteg && initialData?.id && (
+                <div className="md:hidden fixed inset-0 z-[200] flex items-start justify-center p-4">
+                    <div className="absolute inset-0 bg-black/60" onClick={() => setShowNastaSteg(false)} />
+                    <div className="relative bg-white dark:bg-gray-800 rounded-2xl w-full max-h-[85vh] flex flex-col shadow-2xl overflow-hidden">
+                        <div className="flex items-center justify-between px-4 py-3 border-b border-gray-100 dark:border-gray-700">
                             <div className="flex items-center gap-2">
-                                <ArrowRight className="w-4 h-4 text-amber-500" />
-                                <h4 className="text-sm font-semibold text-gray-700 dark:text-gray-200">Nästa steg</h4>
+                                <div className="w-7 h-7 rounded-full bg-amber-100 dark:bg-amber-900/30 flex items-center justify-center">
+                                    <Bell className="w-4 h-4 text-amber-500" />
+                                </div>
+                                <h4 className="font-semibold text-gray-900 dark:text-white">Nästa steg</h4>
                             </div>
-                            <input
-                                type="text"
-                                placeholder="T.ex. Skicka offert, Boka möte..."
-                                className="w-full px-3 py-2 rounded-xl border border-amber-200 dark:border-amber-700 bg-amber-50 dark:bg-amber-900/10 text-gray-900 dark:text-white text-sm focus:outline-none focus:ring-2 focus:ring-amber-400"
-                                value={formData.nextAction || ''}
-                                onChange={(e) => setFormData({ ...formData, nextAction: e.target.value })}
-                            />
-                            <input
-                                type="date"
-                                className="w-full px-3 py-2 rounded-xl border border-amber-200 dark:border-amber-700 bg-amber-50 dark:bg-amber-900/10 text-gray-900 dark:text-white text-sm focus:outline-none focus:ring-2 focus:ring-amber-400"
-                                value={formData.nextActionDate || ''}
-                                onChange={(e) => setFormData({ ...formData, nextActionDate: e.target.value })}
-                            />
                             <button
                                 type="button"
-                                onClick={() => {
-                                    if (initialData) {
-                                        import('../lib/supabase').then(({ supabase }) => {
-                                            supabase.from('contacts').update({
-                                                next_action: formData.nextAction,
-                                                next_action_date: formData.nextActionDate || null,
-                                            }).eq('id', initialData.id);
-                                        });
-                                    }
-                                }}
-                                className="text-xs text-primary-600 dark:text-primary-400 hover:underline"
+                                onClick={() => setShowNastaSteg(false)}
+                                className="p-2 rounded-lg hover:bg-gray-100 dark:hover:bg-gray-700 transition-colors"
                             >
-                                Spara nästa steg
+                                <X className="w-5 h-5 text-gray-500 dark:text-gray-400" />
                             </button>
                         </div>
+                        <div className="overflow-y-auto flex-1 p-4 space-y-4">
+                            <label className="flex items-center gap-2 cursor-pointer group border-b border-gray-100 dark:border-gray-700 pb-3">
+                                <input
+                                    type="checkbox"
+                                    className="w-4 h-4 rounded border-gray-300 text-primary-600 focus:ring-primary-500"
+                                    checked={formData.followUp || false}
+                                    onChange={(e) => setFormData({ ...formData, followUp: e.target.checked })}
+                                />
+                                <span className="text-sm font-medium text-gray-700 dark:text-gray-300 group-hover:text-primary-600 transition-colors">
+                                    Markera för uppföljning
+                                </span>
+                            </label>
+                            <div>
+                                <label className="block text-[10px] font-bold text-gray-400 dark:text-gray-500 mb-1 uppercase tracking-wider">Datum</label>
+                                <input
+                                    type="date"
+                                    className="w-full px-3 py-2 rounded-xl border border-amber-200 dark:border-amber-700 bg-white dark:bg-gray-700 text-gray-900 dark:text-white text-sm focus:outline-none focus:ring-2 focus:ring-amber-400"
+                                    value={formData.nextActionDate || ''}
+                                    onChange={(e) => setFormData({ ...formData, nextActionDate: e.target.value })}
+                                />
+                            </div>
 
-                        <hr className="border-gray-100 dark:border-gray-700" />
-
-                        {/* Activity Log */}
-                        <ActivityLog entityType="contact" entityId={initialData.id} />
+                            <ActivityLog entityType="contact" entityId={initialData.id} />
+                        </div>
                     </div>
-                )}
-            </Modal>
+                </div>
+            )}
         </>
     );
 };

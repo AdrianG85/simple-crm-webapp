@@ -1,46 +1,53 @@
 import React, { useState, useMemo, useRef } from 'react';
 import { ChevronLeft, ChevronRight } from 'lucide-react';
-import type { Deal } from '../types';
+import type { CalendarEvent } from '../types';
 import { format, startOfMonth, endOfMonth, eachDayOfInterval, isSameMonth, isSameDay, addMonths, subMonths, startOfWeek, endOfWeek, parse } from 'date-fns';
 import { sv } from 'date-fns/locale';
 
 interface CustomCalendarProps {
-    deals: Deal[];
-    onDateClick?: (date: Date, dealsOnDate: Deal[]) => void;
+    events: CalendarEvent[];
+    onDateClick?: (date: Date, eventsOnDate: CalendarEvent[]) => void;
 }
 
-export const CustomCalendar: React.FC<CustomCalendarProps> = ({ deals, onDateClick }) => {
+function eventDotColor(type: CalendarEvent['type']): string {
+    switch (type) {
+        case 'deal-deadline': return 'bg-blue-500';
+        case 'new-deal': return 'bg-amber-400';
+        case 'new-contact': return 'bg-green-500';
+    }
+}
+
+function eventLabelColor(type: CalendarEvent['type']): string {
+    switch (type) {
+        case 'deal-deadline': return 'bg-blue-100 dark:bg-blue-900/40 text-blue-800 dark:text-blue-200';
+        case 'new-deal': return 'bg-amber-100 dark:bg-amber-900/40 text-amber-800 dark:text-amber-200';
+        case 'new-contact': return 'bg-green-100 dark:bg-green-900/40 text-green-800 dark:text-green-200';
+    }
+}
+
+export const CustomCalendar: React.FC<CustomCalendarProps> = ({ events, onDateClick }) => {
     const [currentMonth, setCurrentMonth] = useState(new Date());
     const monthInputRef = useRef<HTMLInputElement>(null);
 
-    // Get all days to display (including days from prev/next month to fill the grid)
     const calendarDays = useMemo(() => {
         const monthStart = startOfMonth(currentMonth);
         const monthEnd = endOfMonth(currentMonth);
-        const calendarStart = startOfWeek(monthStart, { weekStartsOn: 1 }); // Monday
+        const calendarStart = startOfWeek(monthStart, { weekStartsOn: 1 });
         const calendarEnd = endOfWeek(monthEnd, { weekStartsOn: 1 });
-
         return eachDayOfInterval({ start: calendarStart, end: calendarEnd });
     }, [currentMonth]);
 
-    // Map deals to dates
-    const dealsByDate = useMemo(() => {
-        const map = new Map<string, Deal[]>();
-        deals.forEach(deal => {
-            if (deal.expectedCloseDate && deal.stage !== 'won' && deal.stage !== 'lost') {
-                const dateKey = deal.expectedCloseDate; // Already in YYYY-MM-DD format
-                if (!map.has(dateKey)) {
-                    map.set(dateKey, []);
-                }
-                map.get(dateKey)!.push(deal);
-            }
+    const eventsByDate = useMemo(() => {
+        const map = new Map<string, CalendarEvent[]>();
+        events.forEach(ev => {
+            if (!map.has(ev.date)) map.set(ev.date, []);
+            map.get(ev.date)!.push(ev);
         });
         return map;
-    }, [deals]);
+    }, [events]);
 
-    const getDealsForDate = (date: Date): Deal[] => {
-        const dateKey = format(date, 'yyyy-MM-dd');
-        return dealsByDate.get(dateKey) || [];
+    const getEventsForDate = (date: Date): CalendarEvent[] => {
+        return eventsByDate.get(format(date, 'yyyy-MM-dd')) || [];
     };
 
     const handlePrevMonth = () => setCurrentMonth(subMonths(currentMonth, 1));
@@ -48,20 +55,15 @@ export const CustomCalendar: React.FC<CustomCalendarProps> = ({ deals, onDateCli
     const handleToday = () => setCurrentMonth(new Date());
 
     const handleDateChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-        const value = e.target.value; // format: YYYY-MM
-        if (value) {
-            const newDate = parse(value, 'yyyy-MM', new Date());
-            setCurrentMonth(newDate);
-        }
+        const value = e.target.value;
+        if (value) setCurrentMonth(parse(value, 'yyyy-MM', new Date()));
     };
 
     const triggerDatePicker = () => {
         if (monthInputRef.current) {
             if ('showPicker' in HTMLInputElement.prototype) {
-                // Modern browsers supporting showPicker()
                 (monthInputRef.current as any).showPicker();
             } else {
-                // Fallback for older browsers
                 monthInputRef.current.click();
             }
         }
@@ -87,28 +89,27 @@ export const CustomCalendar: React.FC<CustomCalendarProps> = ({ deals, onDateCli
                     <input
                         ref={monthInputRef}
                         type="month"
-                        className="sr-only" // Hidden visually but accessible
+                        className="sr-only"
                         value={format(currentMonth, 'yyyy-MM')}
                         onChange={handleDateChange}
                     />
                 </div>
+
+                {/* Legend */}
+                <div className="hidden md:flex items-center gap-3 text-xs text-gray-500 dark:text-gray-400">
+                    <span className="flex items-center gap-1"><span className="w-2 h-2 rounded-full bg-blue-500 inline-block" />Deadline</span>
+                    <span className="flex items-center gap-1"><span className="w-2 h-2 rounded-full bg-amber-400 inline-block" />Ny affär</span>
+                    <span className="flex items-center gap-1"><span className="w-2 h-2 rounded-full bg-green-500 inline-block" />Ny kontakt</span>
+                </div>
+
                 <div className="flex items-center gap-2">
-                    <button
-                        onClick={handleToday}
-                        className="px-3 py-1 text-sm font-medium text-primary-600 dark:text-primary-400 hover:bg-primary-50 dark:hover:bg-primary-900/20 rounded-lg transition-colors"
-                    >
+                    <button onClick={handleToday} className="px-3 py-1 text-sm font-medium text-primary-600 dark:text-primary-400 hover:bg-primary-50 dark:hover:bg-primary-900/20 rounded-lg transition-colors">
                         Idag
                     </button>
-                    <button
-                        onClick={handlePrevMonth}
-                        className="p-2 hover:bg-gray-100 dark:hover:bg-gray-700 rounded-lg transition-colors"
-                    >
+                    <button onClick={handlePrevMonth} className="p-2 hover:bg-gray-100 dark:hover:bg-gray-700 rounded-lg transition-colors">
                         <ChevronLeft className="w-5 h-5 text-gray-600 dark:text-gray-400" />
                     </button>
-                    <button
-                        onClick={handleNextMonth}
-                        className="p-2 hover:bg-gray-100 dark:hover:bg-gray-700 rounded-lg transition-colors"
-                    >
+                    <button onClick={handleNextMonth} className="p-2 hover:bg-gray-100 dark:hover:bg-gray-700 rounded-lg transition-colors">
                         <ChevronRight className="w-5 h-5 text-gray-600 dark:text-gray-400" />
                     </button>
                 </div>
@@ -117,10 +118,7 @@ export const CustomCalendar: React.FC<CustomCalendarProps> = ({ deals, onDateCli
             {/* Weekday headers */}
             <div className="grid grid-cols-7 border-b border-gray-200 dark:border-gray-700 flex-none">
                 {weekDays.map(day => (
-                    <div
-                        key={day}
-                        className="p-2 text-center text-xs font-semibold text-gray-600 dark:text-gray-400 uppercase"
-                    >
+                    <div key={day} className="p-2 text-center text-xs font-semibold text-gray-600 dark:text-gray-400 uppercase">
                         {day}
                     </div>
                 ))}
@@ -129,49 +127,53 @@ export const CustomCalendar: React.FC<CustomCalendarProps> = ({ deals, onDateCli
             {/* Calendar grid */}
             <div className="flex-1 grid grid-cols-7 auto-rows-fr overflow-auto">
                 {calendarDays.map((day, idx) => {
-                    const dealsOnDate = getDealsForDate(day);
+                    const eventsOnDate = getEventsForDate(day);
                     const isCurrentMonth = isSameMonth(day, currentMonth);
                     const isToday = isSameDay(day, today);
-                    const hasDeals = dealsOnDate.length > 0;
+                    const hasEvents = eventsOnDate.length > 0;
 
                     return (
                         <button
                             key={idx}
-                            onClick={() => onDateClick?.(day, dealsOnDate)}
+                            onClick={() => onDateClick?.(day, eventsOnDate)}
                             className={`
-                                relative p-2 border-r border-b border-gray-200 dark:border-gray-700 
-                                hover:bg-gray-50 dark:hover:bg-gray-700/50 transition-colors
+                                relative p-1 md:p-2 border-r border-b border-gray-200 dark:border-gray-700
+                                hover:bg-gray-50 dark:hover:bg-gray-700/50 transition-colors text-left
                                 ${!isCurrentMonth ? 'bg-gray-50 dark:bg-gray-800/50' : ''}
                                 ${isToday ? 'bg-primary-50 dark:bg-primary-900/20' : ''}
                             `}
                         >
-                            <div className="flex flex-col items-center justify-start h-full">
-                                <span
-                                    className={`
-                                        text-sm font-medium mb-1
-                                        ${!isCurrentMonth ? 'text-gray-400 dark:text-gray-600' : 'text-gray-900 dark:text-white'}
-                                        ${isToday ? 'bg-primary-600 text-white rounded-full w-6 h-6 flex items-center justify-center' : ''}
-                                    `}
-                                >
+                            <div className="flex flex-col h-full">
+                                {/* Date number */}
+                                <span className={`
+                                    text-xs md:text-sm font-medium mb-0.5 self-start
+                                    ${!isCurrentMonth ? 'text-gray-400 dark:text-gray-600' : 'text-gray-900 dark:text-white'}
+                                    ${isToday ? 'bg-primary-600 text-white rounded-full w-5 h-5 md:w-6 md:h-6 flex items-center justify-center' : ''}
+                                `}>
                                     {format(day, 'd')}
                                 </span>
-                                {hasDeals && (
-                                    <div className="flex flex-wrap gap-1 justify-center">
-                                        {dealsOnDate.slice(0, 3).map((deal, i) => (
-                                            <div
-                                                key={i}
-                                                className={`
-                                                    w-1.5 h-1.5 rounded-full
-                                                    ${deal.stage === 'potential' ? 'bg-blue-500' : 'bg-amber-500'}
-                                                `}
-                                                title={deal.title}
-                                            />
-                                        ))}
-                                        {dealsOnDate.length > 3 && (
-                                            <span className="text-xs text-gray-500 dark:text-gray-400">
-                                                +{dealsOnDate.length - 3}
-                                            </span>
-                                        )}
+
+                                {hasEvents && (
+                                    <div className="flex flex-col gap-0.5 overflow-hidden mt-0.5">
+                                        {/* Mobile: just dots */}
+                                        <div className="flex md:hidden flex-wrap gap-0.5">
+                                            {eventsOnDate.slice(0, 3).map((ev, i) => (
+                                                <span key={i} className={`w-1.5 h-1.5 rounded-full ${eventDotColor(ev.type)}`} title={ev.title} />
+                                            ))}
+                                            {eventsOnDate.length > 3 && <span className="text-[9px] text-gray-400">+{eventsOnDate.length - 3}</span>}
+                                        </div>
+                                        {/* Desktop: labelled chips */}
+                                        <div className="hidden md:flex flex-col gap-0.5">
+                                            {eventsOnDate.slice(0, 2).map((ev, i) => (
+                                                <span key={i} className={`flex items-center gap-0.5 text-[9px] font-medium px-1 py-0.5 rounded truncate ${eventLabelColor(ev.type)}`}>
+                                                    <span className={`flex-shrink-0 w-1.5 h-1.5 rounded-full ${eventDotColor(ev.type)}`} />
+                                                    <span className="truncate">{ev.title}</span>
+                                                </span>
+                                            ))}
+                                            {eventsOnDate.length > 2 && (
+                                                <span className="text-[9px] text-gray-400 dark:text-gray-500 pl-1">+{eventsOnDate.length - 2} till</span>
+                                            )}
+                                        </div>
                                     </div>
                                 )}
                             </div>

@@ -1,16 +1,37 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { useApp } from '../context/AppContext';
 import { Plus, Search, Mail, Phone, Building2, User, Bell } from 'lucide-react';
 import { ContactModal } from '../components/ContactModal';
 import { Redacted } from '../components/ui/Redacted';
 import type { Contact } from '../types';
 import { cn } from '../lib/utils';
+import { supabase } from '../lib/supabase';
 
 export const ContactsPage: React.FC = () => {
     const { contacts, addContact, updateContact, deleteContact } = useApp();
     const [isModalOpen, setIsModalOpen] = useState(false);
     const [editingContact, setEditingContact] = useState<Contact | null>(null);
     const [searchQuery, setSearchQuery] = useState('');
+    const [latestActivities, setLatestActivities] = useState<Record<string, string>>({});
+
+    // Batch-fetch latest activity entry for contacts marked for follow-up
+    useEffect(() => {
+        const ids = contacts.filter(c => c.followUp && c.id).map(c => c.id!);
+        if (ids.length === 0) { setLatestActivities({}); return; }
+        supabase
+            .from('contact_activities')
+            .select('contact_id, note, created_at')
+            .in('contact_id', ids)
+            .order('created_at', { ascending: false })
+            .then(({ data }) => {
+                if (!data) return;
+                const map: Record<string, string> = {};
+                for (const row of data) {
+                    if (!map[row.contact_id]) map[row.contact_id] = row.note;
+                }
+                setLatestActivities(map);
+            });
+    }, [contacts]);
 
     const filteredContacts = contacts.filter((c) =>
         c.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
@@ -138,10 +159,10 @@ export const ContactsPage: React.FC = () => {
                                         <span><Redacted type="name">{contact.phone}</Redacted></span>
                                     </div>
                                 )}
-                                {contact.followUp && contact.nastaSteg ? (
+                                {contact.followUp && latestActivities[contact.id] ? (
                                     <div className="mt-3 pt-3 border-t border-amber-100 dark:border-amber-900/30 flex flex-col gap-1">
-                                        <span className="text-[10px] font-bold text-amber-500 dark:text-amber-400 uppercase tracking-wider">Nästa steg</span>
-                                        <p className="text-xs text-amber-700 dark:text-amber-300 line-clamp-2 italic"><Redacted type="text">{contact.nastaSteg}</Redacted></p>
+                                        <span className="text-[10px] font-bold text-amber-500 dark:text-amber-400 uppercase tracking-wider">Senaste aktivitet</span>
+                                        <p className="text-xs text-amber-700 dark:text-amber-300 line-clamp-2 italic"><Redacted type="text">{latestActivities[contact.id]}</Redacted></p>
                                     </div>
                                 ) : contact.notes ? (
                                     <div className="mt-3 pt-3 border-t border-gray-50 dark:border-gray-700 flex flex-col gap-1">

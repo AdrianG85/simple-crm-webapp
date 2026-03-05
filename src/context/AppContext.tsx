@@ -13,9 +13,9 @@ interface AppContextType {
     addDeal: (deal: Partial<Deal>) => Promise<void>;
     updateDeal: (deal: Deal) => Promise<void>;
     deleteDeal: (id: string) => Promise<void>;
-    addActivity: (contactId: string, note: string) => Promise<void>;
+    addActivity: (contactId: string, note: string, rubrik?: string) => Promise<void>;
     deleteActivity: (id: string) => Promise<void>;
-    addDealActivity: (dealId: string, note: string) => Promise<void>;
+    addDealActivity: (dealId: string, note: string, rubrik?: string) => Promise<void>;
     deleteDealActivity: (id: string) => Promise<void>;
 }
 
@@ -111,10 +111,10 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
         await fetchDeals();
     };
 
-    const addActivity = async (contactId: string, note: string) => {
+    const addActivity = async (contactId: string, note: string, rubrik?: string) => {
         const { error } = await supabase
             .from('contact_activities')
-            .insert([{ contact_id: contactId, note, created_by: user?.email }]);
+            .insert([{ contact_id: contactId, note, rubrik: rubrik || '', created_by: user?.email }]);
         if (error) throw error;
     };
 
@@ -123,10 +123,10 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
         if (error) throw error;
     };
 
-    const addDealActivity = async (dealId: string, note: string) => {
+    const addDealActivity = async (dealId: string, note: string, rubrik?: string) => {
         const { error } = await supabase
             .from('deal_activities')
-            .insert([{ deal_id: dealId, note, created_by: user?.email }]);
+            .insert([{ deal_id: dealId, note, rubrik: rubrik || '', created_by: user?.email }]);
         if (error) throw error;
     };
 

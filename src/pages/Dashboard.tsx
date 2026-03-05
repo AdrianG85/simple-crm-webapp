@@ -256,10 +256,10 @@ export const Dashboard: React.FC = () => {
                                 return (
                                     <div
                                         key={deal.id}
-                                        onDoubleClick={() => handleEditDeal(deal)}
+                                        onClick={() => handleEditDeal(deal)}
                                         onTouchStart={() => handleTouchStart(deal)}
                                         className="p-4 flex items-center justify-between hover:bg-gray-50 dark:hover:bg-gray-700/50 transition-colors cursor-pointer select-none group"
-                                        title="Dubbelklicka för att redigera"
+                                        title="Klicka för att redigera"
                                     >
                                         <div className="flex items-center gap-3">
                                             <div className={cn(

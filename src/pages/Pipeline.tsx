@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { useApp } from '../context/AppContext';
 import { Plus } from 'lucide-react';
 import { DealModal } from '../components/DealModal';
@@ -21,6 +21,7 @@ import type { DragEndEvent, DragStartEvent, CollisionDetection } from '@dnd-kit/
 import { restrictToWindowEdges, snapCenterToCursor } from '@dnd-kit/modifiers';
 import { KanbanColumn } from '../components/pipeline/KanbanColumn';
 import { SortableDealCard } from '../components/pipeline/SortableDealCard';
+import { supabase } from '../lib/supabase';
 
 const COLUMNS: { id: DealStage; label: string; color: string }[] = [
     { id: 'potential', label: 'Möjlighet', color: 'bg-blue-100 text-blue-800 dark:bg-blue-900/30 dark:text-blue-300' },
@@ -109,6 +110,26 @@ export const PipelinePage: React.FC = () => {
     const [activeStage, setActiveStage] = useState<DealStage>('potential');
     const [activeId, setActiveId] = useState<string | null>(null);
     const [activeWidth, setActiveWidth] = useState<number | null>(null);
+    const [latestActivities, setLatestActivities] = useState<Record<string, { note: string; rubrik: string | null }>>({});
+
+    // Batch-fetch latest activity entry for all deals (needed for displaying "Nästa steg" on mobile cards)
+    useEffect(() => {
+        const ids = deals.map(d => d.id).filter(Boolean) as string[];
+        if (ids.length === 0) { setLatestActivities({}); return; }
+        supabase
+            .from('deal_activities')
+            .select('deal_id, note, rubrik, created_at')
+            .in('deal_id', ids)
+            .order('created_at', { ascending: false })
+            .then(({ data }) => {
+                if (!data) return;
+                const map: Record<string, { note: string; rubrik: string | null }> = {};
+                for (const row of data) {
+                    if (!map[row.deal_id]) map[row.deal_id] = { note: row.note, rubrik: row.rubrik };
+                }
+                setLatestActivities(map);
+            });
+    }, [deals]);
 
     const sensors = useSensors(
         useSensor(MouseSensor, {
@@ -302,6 +323,7 @@ export const PipelinePage: React.FC = () => {
                                                         key={deal.id}
                                                         deal={deal}
                                                         contactName={contact?.name}
+                                                        latestActivity={deal.id ? latestActivities[deal.id] : undefined}
                                                         onClick={openEditModal}
                                                     />
                                                 );
@@ -329,6 +351,7 @@ export const PipelinePage: React.FC = () => {
                                 deals={deals.filter(d => d.stage === column.id)}
                                 contacts={contacts}
                                 onEditDeal={openEditModal}
+                                latestActivities={latestActivities}
                             />
                         ))}
                     </div>
