@@ -3,6 +3,7 @@ import type { Deal, DealStage } from '../types';
 import { Modal } from './ui/Modal';
 import { ConfirmDialog } from './ui/ConfirmDialog';
 import { ActivityLog } from './ActivityLog';
+import { SearchableSelect } from './ui/SearchableSelect';
 import { useApp } from '../context/AppContext';
 import { Bell, X, ChevronRight } from 'lucide-react';
 
@@ -227,19 +228,17 @@ export const DealModal: React.FC<DealModalProps> = ({ isOpen, onClose, onSubmit,
 
                     <div>
                         <label className="block text-sm font-medium text-gray-700 dark:text-white mb-1">Kund / Kontakt *</label>
-                        <select
+                        <SearchableSelect
                             required
-                            className="w-full px-4 py-2 rounded-xl border border-gray-200 bg-white text-gray-900 focus:outline-none focus:ring-2 focus:ring-primary-500 focus:border-transparent"
+                            options={contacts.map(contact => ({
+                                value: contact.id,
+                                label: `${contact.name} ${contact.company ? `(${contact.company})` : ''}`
+                            }))}
                             value={formData.contactId || ''}
-                            onChange={(e) => setFormData({ ...formData, contactId: e.target.value })}
-                        >
-                            <option value="" disabled>Välj kund...</option>
-                            {contacts.map(contact => (
-                                <option key={contact.id} value={contact.id}>
-                                    {contact.name} {contact.company ? `(${contact.company})` : ''}
-                                </option>
-                            ))}
-                        </select>
+                            onChange={(value) => setFormData({ ...formData, contactId: value })}
+                            placeholder="Välj kund..."
+                            searchPlaceholder="Sök efter kund..."
+                        />
                         {contacts.length === 0 && (
                             <p className="text-xs text-amber-600 mt-1">Du behöver lägga till kontakter först.</p>
                         )}
