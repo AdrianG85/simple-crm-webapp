@@ -62,15 +62,21 @@ export const DealModal: React.FC<DealModalProps> = ({ isOpen, onClose, onSubmit,
         e.preventDefault();
         if (!formData.title || !formData.contactId) return;
 
+        const expectedCloseDateRaw = formData.expectedCloseDate?.trim() || null;
+        const nextActionDateRaw = formData.nextActionDate?.trim() || null;
+        const nextActionRaw = formData.nextAction?.trim() || null;
+
         const deal: Partial<Deal> = {
             ...formData,
-            title: formData.title,
+            title: formData.title?.trim(),
             contactId: formData.contactId,
             value: Number(formData.value) || 0,
             currency: formData.currency || 'SEK',
             stage: (formData.stage as DealStage) || 'potential',
-            expectedCloseDate: formData.expectedCloseDate || null,
+            expectedCloseDate: expectedCloseDateRaw,
             notes: formData.notes || '',
+            nextActionDate: nextActionDateRaw as unknown as string,
+            nextAction: nextActionRaw as unknown as string,
         };
 
         if (!initialData) {

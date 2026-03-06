@@ -43,13 +43,18 @@ export const ContactModal: React.FC<ContactModalProps> = ({ isOpen, onClose, onS
         e.preventDefault();
         if (!formData.name) return;
 
+        const nextActionDateRaw = formData.nextActionDate?.trim() || null;
+        const nextActionRaw = formData.nextAction?.trim() || null;
+
         const contact: Partial<Contact> = {
             ...formData,
-            name: formData.name,
+            name: formData.name?.trim(),
             company: formData.company || '',
             email: formData.email || '',
             phone: formData.phone || '',
             notes: formData.notes || '',
+            nextActionDate: nextActionDateRaw as unknown as string,
+            nextAction: nextActionRaw as unknown as string,
         };
 
         // Remove ID and timestamps for new items (Supabase handles them)
