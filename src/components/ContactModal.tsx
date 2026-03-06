@@ -367,8 +367,17 @@ export const ContactModal: React.FC<ContactModalProps> = ({ isOpen, onClose, onS
                                 <label className="block text-[10px] font-bold text-gray-400 dark:text-gray-500 mb-1 uppercase tracking-wider">Datum</label>
                                 <input
                                     type="date"
-                                    className="w-full px-3 py-2 rounded-xl border border-amber-200 dark:border-amber-700 bg-white dark:bg-gray-700 text-gray-900 dark:text-white text-sm focus:outline-none focus:ring-2 focus:ring-amber-400"
+                                    className="w-full px-3 py-2 rounded-xl border border-amber-200 dark:border-amber-700 bg-white dark:bg-gray-700 text-gray-900 dark:text-white text-sm focus:outline-none focus:ring-2 focus:ring-amber-400 cursor-pointer"
                                     value={formData.nextActionDate || ''}
+                                    onClick={(e) => {
+                                        try {
+                                            if ('showPicker' in HTMLInputElement.prototype) {
+                                                (e.target as HTMLInputElement).showPicker();
+                                            }
+                                        } catch (err) {
+                                            // Ignore
+                                        }
+                                    }}
                                     onChange={(e) => setFormData({ ...formData, nextActionDate: e.target.value })}
                                 />
                             </div>
