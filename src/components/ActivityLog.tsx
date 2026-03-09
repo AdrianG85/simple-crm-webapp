@@ -261,6 +261,7 @@ export const ActivityLog: React.FC<ActivityLogProps> = ({ entityType, entityId }
                             <button
                                 type="button"
                                 onClick={() => setDeleteTarget(a.id)}
+                                onTouchEnd={(e) => { e.preventDefault(); e.stopPropagation(); setDeleteTarget(a.id); }}
                                 className="flex-shrink-0 p-1 text-white dark:text-gray-300 hover:text-red-500 dark:hover:text-red-400 transition-colors"
                                 title="Ta bort"
                             >
